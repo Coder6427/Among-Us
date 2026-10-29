@@ -1,0 +1,16 @@
+{
+  "name": "orbital-crew-online",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test multiplayer.test.mjs"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  }
+}
