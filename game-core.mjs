@@ -40,8 +40,23 @@ export function buildMaps(base){
  return {skeld,aurora};
 }
 
-export const HATS=[{id:'none',name:'None'},{id:'sprout',name:'Sprout'},{id:'cap',name:'Crew cap'},{id:'beanie',name:'Beanie'},{id:'crown',name:'Crown'},{id:'party',name:'Party hat'},{id:'chef',name:'Chef'},{id:'antenna',name:'Antenna'}];
-export const ACCESSORIES=[{id:'none',name:'None'},{id:'scarf',name:'Scarf'},{id:'tie',name:'Crew tie'},{id:'hockey',name:'Jason mask'},{id:'dum',name:'DUM note'}];
+export const HATS=[{id:'none',name:'None'},{id:'sprout',name:'Sprout'},{id:'cap',name:'Crew cap'},{id:'beanie',name:'Beanie'},{id:'crown',name:'Crown'},{id:'party',name:'Party hat'},{id:'chef',name:'Chef'},{id:'antenna',name:'Antenna'},{id:'fedora',name:'Fedora'},{id:'flower',name:'Flower'},{id:'egg',name:'Fried egg'},{id:'halo',name:'Halo'},{id:'plunger',name:'Plunger'},{id:'hardhat',name:'Hard hat'}];
+export const ACCESSORIES=[{id:'none',name:'None'},{id:'scarf',name:'Scarf'},{id:'tie',name:'Crew tie'},{id:'hockey',name:'Jason mask'},{id:'dum',name:'DUM note'},{id:'bowtie',name:'Bow tie'},{id:'eyepatch',name:'Eye patch'},{id:'toolbelt',name:'Utility belt'}];
+// These fitted pieces share exactly the same geometry in previews and on the ship.
+function classicOutfitParts(hat,accessory){
+ const parts=[],path=(d,fill,stroke='#243247',width=1.8)=>parts.push({kind:'path',d,fill,stroke,width}),ellipse=(x,y,rx,ry,fill,stroke='#243247',width=1.8)=>parts.push({kind:'ellipse',x,y,rx,ry,fill,stroke,width}),rect=(x,y,w,h,r,fill,stroke='#243247',width=1.8)=>parts.push({kind:'rect',x,y,w,h,r,fill,stroke,width});
+ if(hat==='fedora'){path([['M',19,7],['L',21,-7],['Q',24,-11,31,-7],['Q',39,-11,42,-6],['L',45,8],['Z']],'#344553');path([['M',21,1],['Q',31,5,43,1],['L',44,7],['Q',30,11,20,7],['Z']],'#9a7d64');ellipse(31,9,21,4,'#344553');path([['M',15,9],['Q',31,12,48,8]],null,'#6d8190',1.2);}
+ if(hat==='flower'){path([['M',25,8],['Q',25,0,20,-5]],null,'#55896b',2.5);path([['M',25,4],['Q',34,-5,35,1],['Q',31,7,25,4],['Z']],'#80b877','#365e4d',1.2);for(const [x,y] of [[17,-11],[24,-9],[26,-2],[20,2],[13,-2]])ellipse(x,y,4.5,4.5,'#df8fab','#6e485f',1.2);ellipse(20,-5,4,4,'#efcf70','#866c45',1.3);}
+ if(hat==='egg'){path([['M',18,8],['Q',13,2,22,0],['Q',25,-7,32,-2],['Q',39,-7,44,0],['Q',54,5,45,10],['Q',39,15,33,10],['Q',23,15,18,8],['Z']],'#f3eee0','#879ca2',1.5);ellipse(34,3,6,5,'#f0ba50','#bc893d',1.2);ellipse(32,1,2,1,'#f8d685',null);}
+ if(hat==='halo'){ellipse(31,-10,17,4.6,'#e9c65b','#77603e',1.5);ellipse(31,-10,12.5,2.2,'#213345','#ffe9a1',1);path([['M',18,-12],['Q',29,-16,43,-12]],null,'#fff0b2',1.3);}
+ if(hat==='plunger'){rect(28,-16,6,17,2,'#c39a73','#73563e',1.5);path([['M',20,9],['Q',21,-2,31,-2],['Q',41,-2,43,9],['Z']],'#b45b65','#563647',1.7);ellipse(31,9,14,3.5,'#cb7780','#563647',1.5);path([['M',25,3],['Q',28,0,33,1]],null,'#e09c9b',1.4);}
+ if(hat==='hardhat'){path([['M',17,8],['Q',17,-7,31,-7],['Q',45,-7,46,8],['Z']],'#e0bc55','#806234',1.8);rect(28,-8,7,17,3,'#f5d775','#806234',1.3);path([['M',14,7],['L',49,7],['L',49,12],['L',16,12],['Z']],'#eccd66','#806234',1.6);path([['M',21,0],['L',21,5],['M',41,0],['L',41,5]],null,'#ba943f',1.5);}
+ if(accessory==='bowtie'){path([['M',31,37],['L',23,34],['Q',21,38,23,42],['L',31,39],['L',40,42],['Q',42,38,40,34],['Z']],'#bd627d','#57384f',1.4);rect(29,36,5,4,1.5,'#e598a4','#57384f',1.2);}
+ if(accessory==='eyepatch'){path([['M',23,17],['L',50,31]],null,'#263342',2.5);path([['M',35,20],['L',47,23],['Q',49,33,41,33],['Q',34,31,35,20],['Z']],'#243544','#152439',1.5);path([['M',38,24],['L',44,26]],null,'#506477',1.1);}
+ if(accessory==='toolbelt'){path([['M',17,38],['Q',31,41,45,37],['L',45,43],['Q',29,47,17,43],['Z']],'#866b50','#493e38',1.5);rect(30,39,7,5,1,'#d6bb75','#655337',1.1);rect(18,40,9,8,2,'#a48759','#5c4c3b',1.3);path([['M',41,38],['L',41,46],['M',39,46],['L',43,46]],null,'#a8c6cd',1.6);}
+ return parts;
+}
+function classicOutfitSVG(hat,accessory){return classicOutfitParts(hat,accessory).map(p=>{const shape=p.kind==='path'?`<path d="${p.d.map(v=>v.join(' ')).join(' ')}"`:p.kind==='ellipse'?`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.rx}" ry="${p.ry}"`:`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${p.r}"`;return `${shape} fill="${p.fill||'none'}" stroke="${p.stroke||'none'}" stroke-width="${p.width}" stroke-linejoin="round" stroke-linecap="round"/>`;}).join('');}
 export function outfitSVG(hat='none',accessory='none'){
  const hats={
   sprout:'<path d="M30 8V-6" stroke="#4e9b6b" stroke-width="3"/><path d="M30-4Q13-16 14-4Q19 3 30-4ZM30-4Q45-17 46-7Q43 0 30-4Z" fill="#a0d278" stroke="#325847" stroke-width="1.5"/>',
@@ -58,7 +73,7 @@ export function outfitSVG(hat='none',accessory='none'){
   hockey:'<path d="M16 19h13m-12 9h12" stroke="#263644" stroke-width="4"/><path d="M27 13q13-6 23 2l2 13q-2 9-14 11-12-4-13-12Z" fill="#e4dfbf" stroke="#354656" stroke-width="2"/><path d="m29 21 7-2 1 6-8 1Zm13-2 7 2-1 5-7-1Z" fill="#23323e"/><path d="m36 15 3 3 3-3m-13 14 4 2m12 0 4-2" fill="none" stroke="#b95b60" stroke-width="1.8"/><g fill="#607071"><circle cx="36" cy="30" r="1"/><circle cx="41" cy="30" r="1"/><circle cx="38.5" cy="34" r="1"/></g>',
   dum:'<g transform="rotate(8 38 24)"><path d="M27 15h22v19H27Z" fill="#000" opacity=".18" transform="translate(1 2)"/><path d="M27 15h22v15l-4 4H27Z" fill="#f4dfa1" stroke="#8a784f" stroke-width="1.1"/><path d="M45 30h4l-4 4Z" fill="#c6ad72"/><path d="M33 13h10v5H33Z" fill="#d8e5db" opacity=".72"/><text x="38" y="27" text-anchor="middle" fill="#37404c" font-family="monospace" font-size="8" font-weight="bold">DUM</text></g>'
  };
- return (hats[hat]||'')+(accessories[accessory]||'');
+ return (hats[hat]||'')+(accessories[accessory]||'')+classicOutfitSVG(hat,accessory);
 }
 export function drawOutfit(c,hat='none',accessory='none',bob=0){
  c.save();c.translate(-29,-40+bob);c.lineJoin='round';c.lineCap='round';
@@ -76,10 +91,11 @@ export function drawOutfit(c,hat='none',accessory='none',bob=0){
  if(accessory==='tie'){path([[21,34],[31,36],[26,40],[21,37]],'#e4ece3','#345067',1.3);path([[31,36],[43,34],[41,37],[36,40]],'#e4ece3','#345067',1.3);path([[29,36],[33,36],[34,38],[31,40],[28,38]],'#be5767','#542f46',1.3);path([[31,39],[34,42],[31,44],[28,42]],'#be5767','#542f46',1.3);path([[31,40],[32,42]],null,'#ef9b99',1.2);}
  if(accessory==='hockey'){path([[16,19],[29,19]],null,'#263644',4);path([[17,28],[29,28]],null,'#263644',4);c.beginPath();c.moveTo(27,13);c.quadraticCurveTo(40,7,50,15);c.lineTo(52,28);c.quadraticCurveTo(50,37,38,39);c.quadraticCurveTo(26,35,25,27);c.closePath();c.fillStyle='#e4dfbf';c.fill();c.strokeStyle='#354656';c.lineWidth=2;c.stroke();path([[29,21],[36,19],[37,25],[29,26]],'#23323e',null);path([[42,19],[49,21],[48,26],[41,25]],'#23323e',null);path([[36,15],[39,18],[42,15]],null,'#b95b60',1.8);path([[29,29],[33,31]],null,'#b95b60',1.8);path([[45,31],[49,29]],null,'#b95b60',1.8);for(const [x,y] of [[36,30],[41,30],[38.5,34]]){c.beginPath();c.arc(x,y,1,0,Math.PI*2);c.fillStyle='#607071';c.fill();}}
  if(accessory==='dum'){c.save();c.translate(38,24);c.rotate(8*Math.PI/180);c.translate(-38,-24);path([[28,17],[50,17],[50,35],[28,35]],'#0002',null);path([[27,15],[49,15],[49,30],[45,34],[27,34]],'#f4dfa1','#8a784f',1.1);path([[45,30],[49,30],[45,34]],'#c6ad72',null);c.fillStyle='#d8e5dbb8';c.fillRect(33,13,10,5);c.fillStyle='#37404c';c.font='bold 8px monospace';c.textAlign='center';c.textBaseline='alphabetic';c.fillText('DUM',38,27);c.restore();}
+ for(const p of classicOutfitParts(hat,accessory)){c.beginPath();if(p.kind==='ellipse')c.ellipse(p.x,p.y,p.rx,p.ry,0,0,Math.PI*2);else if(p.kind==='rect')c.roundRect(p.x,p.y,p.w,p.h,p.r);else for(const [cmd,...v] of p.d){if(cmd==='M')c.moveTo(...v);else if(cmd==='L')c.lineTo(...v);else if(cmd==='Q')c.quadraticCurveTo(...v);else c.closePath();}if(p.fill){c.fillStyle=p.fill;c.fill();}if(p.stroke){c.strokeStyle=p.stroke;c.lineWidth=p.width;c.stroke();}}
  c.restore();
 }
 
-export const PETS=[{id:'none',name:'No pet'},{id:'mini',name:'Mini crewmate'},{id:'stickman',name:'Stickman'},{id:'ufo',name:'UFO'},{id:'cyclops',name:'Blue cyclops dog'}];
+export const PETS=[{id:'none',name:'No pet'},{id:'mini',name:'Mini crewmate'},{id:'stickman',name:'Stickman'},{id:'ufo',name:'UFO'},{id:'cyclops',name:'Blue cyclops dog'},{id:'hamster',name:'Hamster ball'},{id:'robot',name:'Mini robot'},{id:'alien',name:'Green alien'}];
 
 // One set of shapes keeps the wardrobe and the moving companions identical.
 function petArt(type,color,step=0){
@@ -104,6 +120,15 @@ function petArt(type,color,step=0){
   path([['M',-1,-17],['L',-7,-29],['Q',-14,-25,-9,-16],['Z']],'#3978bb','#193b60');path([['M',11,-18],['L',14,-28],['Q',20,-24,15,-14],['Z']],'#3978bb','#193b60');
   ellipse(5,-18,12,11,'#67b5ed','#193b60');ellipse(6,-20,6,6,'#f3f6e1','#264e76',1.4);ellipse(8,-20,2.6,3.6,'#233a61');ellipse(9,-21,1,1,'#fff');ellipse(11,-11,2,1.5,'#183858');
   path([['M',5,-8],['Q',8,-6,11,-8]],null,'#234768',1.2);
+ }else if(type==='hamster'){
+  ellipse(0,-14,19,19,'#5896ad','#a8d8df',1.5);ellipse(0,-14,16,16,'#8bc4d1','#355e7a',1.1);
+  ellipse(-4,-16,10,11,'#c99465','#77533f',1.4);ellipse(-9,-24,4,4,'#dfb683','#77533f',1.2);ellipse(1,-25,4,4,'#dfb683','#77533f',1.2);ellipse(-4,-12,7,7,'#f0d9a4',null);ellipse(0,-17,1.5,2,'#27374a');ellipse(5,-12,2,1.3,'#846052',null);ellipse(-9,-4+leg,4,2,'#bb885e','#77533f',1.1);ellipse(3,-4-leg,4,2,'#bb885e','#77533f',1.1);
+  path([['M',-10,-29],['Q',-17,-23,-16,-16]],null,'#ddf5f3',2.6);path([['M',10,-1],['Q',17,-9,15,-18]],null,'#bce4e7',1.5);
+ }else if(type==='robot'){
+  path([['M',0,-25],['L',0,-31]],null,'#a9bac3',1.5);ellipse(0,-32,2,2,'#e8957c','#534e61',1.1);rect(-12,-27,25,16,4,'#9aaeb8','#2c4058',1.6);rect(-8,-23,18,8,2,'#294b65','#2c4058',1.1);ellipse(-3,-19,2,2,'#a4e5e0',null);ellipse(5,-19,2,2,'#a4e5e0',null);rect(-9,-11,19,12,3,'#7b93a8','#2c4058',1.6);rect(-6,-7,6,4,1,'#d7c68d','#3c5666',1);ellipse(5,-5,1.8,1.8,'#e78f85',null);path([['M',-11,-9],['L',-16,-4+leg],['M',12,-9],['L',17,-4-leg]],null,'#a9bac3',3);rect(-10,-1+leg,8,4,1,'#3e5970');rect(4,-1-leg,8,4,1,'#3e5970');
+ }else if(type==='alien'){
+  path([['M',-4,-24],['Q',-8,-31,-3,-32]],null,'#87b881',2);ellipse(-3,-32,2,2,'#d6e2a0','#456c59',1.1);
+  path([['M',-17,0],['Q',-20,-7,-12,-11],['Q',-15,-26,1,-27],['Q',16,-26,13,-11],['Q',23,-5,16,0],['L',8,-4],['Q',1,4,-6,-3],['Z']],'#8bc584','#335d56',1.6);ellipse(2,-18,7,8,'#e7efc7','#477467',1.2);ellipse(4,-18,3.3,4.3,'#304f65',null);ellipse(5,-20,1.2,1.2,'#f9fff4',null);path([['M',-2,-7],['Q',2,-4,7,-8]],null,'#477467',1.5);
  }
  return shapes;
 }
@@ -505,6 +530,23 @@ export class Game {
    else lines.push({who:c.id,text:pick([`I was in ${place}. I didn't see the elimination.`,`Just finishing tasks in ${place}. I have no solid evidence.`,`I came from ${place}. Don't vote blindly.`,`${place} was quiet when I was there. Does anyone have a witness?`])});
   }
   this.meeting={reporter,body:body?.id??null,lines,result:null};this.emit('meeting');return true;
+ }
+ sendMeetingChat(value){
+  if(this.phase!=='meeting'||!this.meeting||this.meeting.result||typeof value!=='string')return false;
+  const text=value.replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,160);if(!text||(this.meeting.sentCount||0)>=24)return false;
+  this.meeting.sentCount=(this.meeting.sentCount||0)+1;const ghost=!this.player.alive;
+  this.meeting.lines.push({who:0,text,ghost});
+  const candidates=this.crew.filter(c=>c.id!==0&&(ghost?!c.alive:c.alive));
+  if(candidates.length){
+   const mentioned=candidates.find(c=>text.toLowerCase().includes(c.name.toLowerCase())),speaker=mentioned||candidates[Math.floor(this.random()*candidates.length)],previous=this.meeting.lines.find(l=>l.who===speaker.id&&!l.ghost);
+   let reply;
+   if(ghost)reply='We can still help. Finish your remaining tasks; the living crew cannot read this chat.';
+   else if(/\b(skip|evidence|proof)\b/i.test(text))reply='Vote on what you actually saw. A vent alone could be an Engineer.';
+   else if(/\b(where|room|location)\b/i.test(text)&&!speaker.imp)reply=`I was in ${this.roomAt(speaker.x,speaker.y)?.name||'the hallway'}. ${previous?.text.includes('saw')?'My earlier account is in the chat.':"I did not see the elimination."}`;
+   else reply=previous?.text||'I have no new evidence. What did you see?';
+   this.meeting.lines.push({who:speaker.id,text:reply,ghost});
+  }
+  this.emit('chat');return true;
  }
  vote(selected){
   if(this.phase!=='meeting'||this.meeting.result)return null;

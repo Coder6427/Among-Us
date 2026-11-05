@@ -43,9 +43,9 @@ The Blueprint starts with Render's Free plan so it does not request a paid servi
 - Copy the invite link by clicking the six-character room code. Friends can use the link or enter the code on the same website.
 - Online play needs **4–15 real players**. Everyone presses Ready, then the host presses Start. Two impostors need at least 7 players, and three need 9.
 - The host sets the map, player limit, impostor count, movement speed, crew vision, kill cooldown, task count, Engineer and Scientist counts, discussion and voting time, emergency meetings, and public/private status. The combined specialist count cannot exceed the available crewmate slots. Changes clear readiness. Roles are assigned randomly by the server.
-- Players can chat in the lobby and in meetings. Living players cannot send chat during ordinary play. Eliminated players have a separate ghost channel that living players never receive.
+- Players can chat in the lobby and in meetings. Use the visible Send button or press Enter in the message field. Living players cannot send chat during ordinary play. Eliminated players have a separate ghost channel that living players never receive.
 - The host can remove lobby players. If the host disconnects, control transfers to a connected crewmate. A lost connection can resume the same player for 30 seconds; after that, the abandoned character leaves the round. Rejoining is not supported after a server restart.
-- The round starts with 3 seconds of darkness followed by your private role reveal. At the end, the host returns everyone to the lobby for another round.
+- The round starts with 3 seconds of darkness followed by your private role reveal. Impostor teammates stand behind your main character with their actual colors, hats, names, and TEAMMATE labels. At the end, the host returns everyone to the lobby for another round.
 
 ## Controls and game features
 
@@ -53,17 +53,17 @@ WASD or arrow keys move. Click inside your view circle to walk. On mobile, use t
 
 **E / Space:** use tasks, repair panels, the emergency button, or Security. **Q:** kill as an impostor. **R:** report a nearby visible body. **V:** enter/exit vents. **B:** Scientist vitals. **F:** sabotage choices. **M:** ship map. Use Escape to close ordinary panels.
 
-Both The Skeld and Aurora Station are available. Each has its own rooms, task locations, vents, repair systems, and exactly three fixed Security cameras. The server limits received player positions and camera feeds by visibility and walls. Roles and impostor teammates are private. Vitals report actual deaths; normal living-player rosters do not reveal unreported remote eliminations.
+Both The Skeld and Aurora Station are available. Each has its own rooms, task locations, vents, repair systems, and exactly three fixed Security cameras. A larger high-contrast tracking arrow shows the destination and remaining distance for repairs and selected tasks. The server limits received player positions and camera feeds by visibility and walls. Roles and impostor teammates are private. Vitals report actual deaths; normal living-player rosters do not reveal unreported remote eliminations.
 
 The twelve task minigames include garbage chute, oil change, wireless transfer, wiring, card swipe, asteroids, shields, medical scan, charting a course, O₂ filter cleaning, distributor calibration, and reactor memory. The server verifies task assignment, proximity, a per-player work ticket, and elapsed work before recording progress. Task puzzle interactions run in the browser; this is a casual game, not a tournament anti-cheat system.
 
 Lights, Reactor, Oxygen, and Communications sabotages require the correct physical repair panels. Lights stay dark until repaired. Security and vitals disconnect during Communications sabotage. Engineers can stay in vents for 8 seconds, then recharge for 25 seconds; impostors also use vents. Hidden actors and their pets disappear from other players and all camera feeds.
 
-Mini crewmate, stickman, UFO, and blue one-eyed dog pets follow their owners and are eliminated with them. Outfits include the fitted tie, antenna, Jason-style mask, and taped DUM note. Player-involved kills have a brief red animation. **The online world continues during tasks, cameras, vitals, maps, and kill scenes**; other players are never paused by your screen. Meetings freeze walking and sabotage countdowns.
+Mini crewmate, stickman, UFO, blue one-eyed dog, hamster ball, mini robot, and green alien pets follow their owners and are eliminated with them. Classic fitted cosmetics include fedora, flower, egg, halo, plunger, hard hat, bow tie, eye patch, and utility belt. Outfits include the fitted tie, antenna, Jason-style mask, and taped DUM note. Player-involved kills have a brief red animation. **The online world continues during tasks, cameras, vitals, maps, and kill scenes**; other players are never paused by your screen. Meetings freeze walking and sabotage countdowns.
 
 Crew win by completing every assigned crew task or eliminating every impostor. Ghost crewmates can still do their tasks. Impostors win at parity with the living crew or when a critical sabotage expires. Disconnected players remain vulnerable during their 30-second reconnection window; departed players are removed from task requirements.
 
-Use **Practice with AI** for the original single-player game with its existing AI, difficulty options, wardrobe, and mobile controls. The practice game also works offline.
+Use **Practice with AI** for the single-player game with typeable meeting chat and AI responses with its existing AI, difficulty options, wardrobe, and mobile controls. The practice game also works offline.
 
 ## Run and test locally
 
@@ -79,7 +79,7 @@ Open `http://localhost:3000`. For a local multiplayer check, use several browser
 
 `GET /health` returns JSON with `ok: true`. The server binds to `0.0.0.0` and Render's `PORT` automatically. Only the two public HTML files and the health endpoint are served; source files and session tokens are not exposed as website routes. Messages have size and frequency limits, names and chat render as text, and every action uses the identity of its own socket.
 
-Validation passed 17 multiplayer rule and network checks, including a real fifteen-player WebSocket room alongside a separate private room and synchronized movement. A bundled-client test also passed room creation, role reveal, task completion, cameras, vitals, vent travel, light repairs, mobile controls, meetings, chat, voting, kill scenes, reconnection, and returning to the lobby. The original 72 single-player checks are retained in the development source. The in-app browser preview could not connect in the authoring environment, so a visual browser pass and a deployment on your Render account are still required. No claim of live worldwide deployment or unlimited server capacity is made.
+Validation passed 17 multiplayer rule and network checks, including a real fifteen-player WebSocket room alongside a separate private room and synchronized movement. A bundled-client test also passed room creation, role reveal, task completion, cameras, vitals, vent travel, light repairs, mobile controls, meetings, chat, voting, kill scenes, reconnection, and returning to the lobby. The original 75 single-player checks are retained in the development source. The in-app browser preview could not connect in the authoring environment, so a visual browser pass and a deployment on your Render account are still required. No claim of live worldwide deployment or unlimited server capacity is made.
 
 ## Operations
 

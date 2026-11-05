@@ -439,6 +439,25 @@ body.reduced-motion .kill-impact{opacity:.6}
 body.reduced-motion .kill-pet{animation:none;transform:rotate(65deg);opacity:.45}
 body.reduced-motion .kill-pet:after{animation:none;opacity:1}
 @media(max-width:650px){.wardrobe-modal{padding:25px 18px}.wardrobe-modal .outfit-preview{height:137px}.wardrobe-modal .cosmetic-option{min-height:83px;font-size:9px;padding:10px 4px}.wardrobe-modal [role=tabpanel]{min-height:230px}.wardrobe-tabs button{padding:12px 5px}.kill-pet{right:2%;bottom:17px}.kill-pet>svg{width:59px;height:59px}.kill-pet:after{font-size:16px;top:15px;left:25px}}
+.reveal-lineup{position:relative;width:360px;max-width:94vw;height:222px;margin:0 auto 20px;isolation:isolate}
+.reveal-lineup:before{content:'';position:absolute;inset:45px -90px 0;background:radial-gradient(ellipse,color-mix(in srgb,var(--role-color,#ed7484) 36%,transparent),transparent 68%);z-index:-1}
+.reveal-main{position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:3;display:flex;align-items:center;flex-direction:column;filter:drop-shadow(0 5px 7px #0009)}
+.reveal-main>strong{font:700 11px var(--display);letter-spacing:2px;color:#fff0de;margin-top:-2px}
+.reveal-ally{position:absolute;bottom:38px;z-index:1;display:flex;flex-direction:column;align-items:center;width:100px;filter:drop-shadow(0 2px 5px #0009)}
+.reveal-ally.ally-right{left:calc(50% + 21px)}.reveal-ally.ally-left{right:calc(50% + 21px)}
+.reveal-ally strong{display:block;width:130px;font:600 11px var(--display);color:#ffe2d4;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reveal-ally small{font:600 8px var(--font);letter-spacing:1px;color:#ff9ca8;line-height:1.6}
+.ally-right strong,.ally-right small{transform:translateX(29px)}.ally-left strong,.ally-left small{transform:translateX(-29px)}
+.lineup-pet{position:absolute;bottom:1px;left:calc(50% + 48px);z-index:4}
+#revealCrew{width:100%;height:242px;display:block;margin:0 auto 20px}#revealCrew:before{display:none}
+#revealTitle{font-weight:700;text-transform:uppercase;letter-spacing:4px}#revealTeam{font-weight:600;font-size:10px;line-height:1.9;letter-spacing:1.2px}
+.meeting-chat-form{padding-top:13px;margin-top:10px;border-top:1px solid #3c5264}
+.meeting-chat-form label{display:block;font:600 9px var(--display);letter-spacing:1px;color:#a2d7c4;margin-bottom:8px}
+.meeting-chat-form>div{display:flex;gap:7px}.meeting-chat-form input{min-width:0;flex:1;border:1px solid #51748a;border-radius:6px;background:#12273c;color:#e0ebe9;padding:12px;font-size:12px}
+.meeting-chat-form button{padding:10px 15px;border:1px solid #6aaa94;background:#305b4c;border-radius:6px;color:#d4f0de;font-size:12px}
+.meeting-chat-form small{display:block;margin-top:7px;font-size:9px;color:#8aa8ba;line-height:1.6}.ghost-chat-line{opacity:.8}
+.system-alert{padding-right:17px!important}
+@media(max-width:650px){.reveal-lineup{width:325px;transform:scale(.9);transform-origin:center bottom}.reveal-content{padding-left:12px;padding-right:12px}#revealCrew{height:227px;margin-bottom:12px}#revealTeam{font-size:9px;letter-spacing:.6px}.meeting-chat-form input{font-size:16px;padding:10px}.meeting-chat-form button{min-height:44px;padding:10px 13px}.meeting-chat-form label{font-size:8px}.meeting-chat-form small{font-size:8px}}
 </style>
 </head>
 <body><a href="/" style="position:fixed;right:18px;top:6px;z-index:1000;color:#9dd5bf;font:11px sans-serif">← Online rooms</a>
@@ -487,7 +506,7 @@ body.reduced-motion .kill-pet:after{animation:none;opacity:1}
           <canvas id="gameCanvas" aria-label="Ship map. Use WASD or arrow keys to move, or click a visible destination." tabindex="0"></canvas>
           <div class="round-hud" id="roundTasks"><button class="tasks-toggle" id="taskToggle" aria-expanded="true">Tasks <kbd>T</kbd><span>▾</span></button><div id="taskDock"></div></div>
           <div class="round-tools"><button id="mapBtn" class="hud-tool">Map <kbd>M</kbd></button></div>
-          <div class="system-alert" id="systemAlert" role="status" hidden><span id="alertIcon">ϟ</span><div><strong id="alertTitle">Lights sabotaged</strong><small id="alertDetail">Repair the breakers in Electrical</small></div><button id="locateRepair" title="Navigate to the repair panel" aria-label="Navigate to repair">↗</button></div>
+          <div class="system-alert" id="systemAlert" role="status" hidden><span id="alertIcon">ϟ</span><div><strong id="alertTitle">Lights sabotaged</strong><small id="alertDetail">Repair the breakers in Electrical</small></div></div>
           <div class="room-name" id="roomName">Cafeteria</div>
           <div class="vent-panel" id="ventPanel" hidden></div>
           <div class="viewport-top"><span class="location-chip"><span class="live-dot"></span><span id="locationText">Cafeteria</span></span><span class="ship-coordinates">SKELD · SECTOR 07</span></div>
@@ -548,8 +567,23 @@ body.reduced-motion .kill-pet:after{animation:none;opacity:1}
  return {skeld,aurora};
 }
 
-const HATS=[{id:'none',name:'None'},{id:'sprout',name:'Sprout'},{id:'cap',name:'Crew cap'},{id:'beanie',name:'Beanie'},{id:'crown',name:'Crown'},{id:'party',name:'Party hat'},{id:'chef',name:'Chef'},{id:'antenna',name:'Antenna'}];
-const ACCESSORIES=[{id:'none',name:'None'},{id:'scarf',name:'Scarf'},{id:'tie',name:'Crew tie'},{id:'hockey',name:'Jason mask'},{id:'dum',name:'DUM note'}];
+const HATS=[{id:'none',name:'None'},{id:'sprout',name:'Sprout'},{id:'cap',name:'Crew cap'},{id:'beanie',name:'Beanie'},{id:'crown',name:'Crown'},{id:'party',name:'Party hat'},{id:'chef',name:'Chef'},{id:'antenna',name:'Antenna'},{id:'fedora',name:'Fedora'},{id:'flower',name:'Flower'},{id:'egg',name:'Fried egg'},{id:'halo',name:'Halo'},{id:'plunger',name:'Plunger'},{id:'hardhat',name:'Hard hat'}];
+const ACCESSORIES=[{id:'none',name:'None'},{id:'scarf',name:'Scarf'},{id:'tie',name:'Crew tie'},{id:'hockey',name:'Jason mask'},{id:'dum',name:'DUM note'},{id:'bowtie',name:'Bow tie'},{id:'eyepatch',name:'Eye patch'},{id:'toolbelt',name:'Utility belt'}];
+// These fitted pieces share exactly the same geometry in previews and on the ship.
+function classicOutfitParts(hat,accessory){
+ const parts=[],path=(d,fill,stroke='#243247',width=1.8)=>parts.push({kind:'path',d,fill,stroke,width}),ellipse=(x,y,rx,ry,fill,stroke='#243247',width=1.8)=>parts.push({kind:'ellipse',x,y,rx,ry,fill,stroke,width}),rect=(x,y,w,h,r,fill,stroke='#243247',width=1.8)=>parts.push({kind:'rect',x,y,w,h,r,fill,stroke,width});
+ if(hat==='fedora'){path([['M',19,7],['L',21,-7],['Q',24,-11,31,-7],['Q',39,-11,42,-6],['L',45,8],['Z']],'#344553');path([['M',21,1],['Q',31,5,43,1],['L',44,7],['Q',30,11,20,7],['Z']],'#9a7d64');ellipse(31,9,21,4,'#344553');path([['M',15,9],['Q',31,12,48,8]],null,'#6d8190',1.2);}
+ if(hat==='flower'){path([['M',25,8],['Q',25,0,20,-5]],null,'#55896b',2.5);path([['M',25,4],['Q',34,-5,35,1],['Q',31,7,25,4],['Z']],'#80b877','#365e4d',1.2);for(const [x,y] of [[17,-11],[24,-9],[26,-2],[20,2],[13,-2]])ellipse(x,y,4.5,4.5,'#df8fab','#6e485f',1.2);ellipse(20,-5,4,4,'#efcf70','#866c45',1.3);}
+ if(hat==='egg'){path([['M',18,8],['Q',13,2,22,0],['Q',25,-7,32,-2],['Q',39,-7,44,0],['Q',54,5,45,10],['Q',39,15,33,10],['Q',23,15,18,8],['Z']],'#f3eee0','#879ca2',1.5);ellipse(34,3,6,5,'#f0ba50','#bc893d',1.2);ellipse(32,1,2,1,'#f8d685',null);}
+ if(hat==='halo'){ellipse(31,-10,17,4.6,'#e9c65b','#77603e',1.5);ellipse(31,-10,12.5,2.2,'#213345','#ffe9a1',1);path([['M',18,-12],['Q',29,-16,43,-12]],null,'#fff0b2',1.3);}
+ if(hat==='plunger'){rect(28,-16,6,17,2,'#c39a73','#73563e',1.5);path([['M',20,9],['Q',21,-2,31,-2],['Q',41,-2,43,9],['Z']],'#b45b65','#563647',1.7);ellipse(31,9,14,3.5,'#cb7780','#563647',1.5);path([['M',25,3],['Q',28,0,33,1]],null,'#e09c9b',1.4);}
+ if(hat==='hardhat'){path([['M',17,8],['Q',17,-7,31,-7],['Q',45,-7,46,8],['Z']],'#e0bc55','#806234',1.8);rect(28,-8,7,17,3,'#f5d775','#806234',1.3);path([['M',14,7],['L',49,7],['L',49,12],['L',16,12],['Z']],'#eccd66','#806234',1.6);path([['M',21,0],['L',21,5],['M',41,0],['L',41,5]],null,'#ba943f',1.5);}
+ if(accessory==='bowtie'){path([['M',31,37],['L',23,34],['Q',21,38,23,42],['L',31,39],['L',40,42],['Q',42,38,40,34],['Z']],'#bd627d','#57384f',1.4);rect(29,36,5,4,1.5,'#e598a4','#57384f',1.2);}
+ if(accessory==='eyepatch'){path([['M',23,17],['L',50,31]],null,'#263342',2.5);path([['M',35,20],['L',47,23],['Q',49,33,41,33],['Q',34,31,35,20],['Z']],'#243544','#152439',1.5);path([['M',38,24],['L',44,26]],null,'#506477',1.1);}
+ if(accessory==='toolbelt'){path([['M',17,38],['Q',31,41,45,37],['L',45,43],['Q',29,47,17,43],['Z']],'#866b50','#493e38',1.5);rect(30,39,7,5,1,'#d6bb75','#655337',1.1);rect(18,40,9,8,2,'#a48759','#5c4c3b',1.3);path([['M',41,38],['L',41,46],['M',39,46],['L',43,46]],null,'#a8c6cd',1.6);}
+ return parts;
+}
+function classicOutfitSVG(hat,accessory){return classicOutfitParts(hat,accessory).map(p=>{const shape=p.kind==='path'?`<path d="${p.d.map(v=>v.join(' ')).join(' ')}"`:p.kind==='ellipse'?`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.rx}" ry="${p.ry}"`:`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${p.r}"`;return `${shape} fill="${p.fill||'none'}" stroke="${p.stroke||'none'}" stroke-width="${p.width}" stroke-linejoin="round" stroke-linecap="round"/>`;}).join('');}
 function outfitSVG(hat='none',accessory='none'){
  const hats={
   sprout:'<path d="M30 8V-6" stroke="#4e9b6b" stroke-width="3"/><path d="M30-4Q13-16 14-4Q19 3 30-4ZM30-4Q45-17 46-7Q43 0 30-4Z" fill="#a0d278" stroke="#325847" stroke-width="1.5"/>',
@@ -566,7 +600,7 @@ function outfitSVG(hat='none',accessory='none'){
   hockey:'<path d="M16 19h13m-12 9h12" stroke="#263644" stroke-width="4"/><path d="M27 13q13-6 23 2l2 13q-2 9-14 11-12-4-13-12Z" fill="#e4dfbf" stroke="#354656" stroke-width="2"/><path d="m29 21 7-2 1 6-8 1Zm13-2 7 2-1 5-7-1Z" fill="#23323e"/><path d="m36 15 3 3 3-3m-13 14 4 2m12 0 4-2" fill="none" stroke="#b95b60" stroke-width="1.8"/><g fill="#607071"><circle cx="36" cy="30" r="1"/><circle cx="41" cy="30" r="1"/><circle cx="38.5" cy="34" r="1"/></g>',
   dum:'<g transform="rotate(8 38 24)"><path d="M27 15h22v19H27Z" fill="#000" opacity=".18" transform="translate(1 2)"/><path d="M27 15h22v15l-4 4H27Z" fill="#f4dfa1" stroke="#8a784f" stroke-width="1.1"/><path d="M45 30h4l-4 4Z" fill="#c6ad72"/><path d="M33 13h10v5H33Z" fill="#d8e5db" opacity=".72"/><text x="38" y="27" text-anchor="middle" fill="#37404c" font-family="monospace" font-size="8" font-weight="bold">DUM</text></g>'
  };
- return (hats[hat]||'')+(accessories[accessory]||'');
+ return (hats[hat]||'')+(accessories[accessory]||'')+classicOutfitSVG(hat,accessory);
 }
 function drawOutfit(c,hat='none',accessory='none',bob=0){
  c.save();c.translate(-29,-40+bob);c.lineJoin='round';c.lineCap='round';
@@ -584,10 +618,11 @@ function drawOutfit(c,hat='none',accessory='none',bob=0){
  if(accessory==='tie'){path([[21,34],[31,36],[26,40],[21,37]],'#e4ece3','#345067',1.3);path([[31,36],[43,34],[41,37],[36,40]],'#e4ece3','#345067',1.3);path([[29,36],[33,36],[34,38],[31,40],[28,38]],'#be5767','#542f46',1.3);path([[31,39],[34,42],[31,44],[28,42]],'#be5767','#542f46',1.3);path([[31,40],[32,42]],null,'#ef9b99',1.2);}
  if(accessory==='hockey'){path([[16,19],[29,19]],null,'#263644',4);path([[17,28],[29,28]],null,'#263644',4);c.beginPath();c.moveTo(27,13);c.quadraticCurveTo(40,7,50,15);c.lineTo(52,28);c.quadraticCurveTo(50,37,38,39);c.quadraticCurveTo(26,35,25,27);c.closePath();c.fillStyle='#e4dfbf';c.fill();c.strokeStyle='#354656';c.lineWidth=2;c.stroke();path([[29,21],[36,19],[37,25],[29,26]],'#23323e',null);path([[42,19],[49,21],[48,26],[41,25]],'#23323e',null);path([[36,15],[39,18],[42,15]],null,'#b95b60',1.8);path([[29,29],[33,31]],null,'#b95b60',1.8);path([[45,31],[49,29]],null,'#b95b60',1.8);for(const [x,y] of [[36,30],[41,30],[38.5,34]]){c.beginPath();c.arc(x,y,1,0,Math.PI*2);c.fillStyle='#607071';c.fill();}}
  if(accessory==='dum'){c.save();c.translate(38,24);c.rotate(8*Math.PI/180);c.translate(-38,-24);path([[28,17],[50,17],[50,35],[28,35]],'#0002',null);path([[27,15],[49,15],[49,30],[45,34],[27,34]],'#f4dfa1','#8a784f',1.1);path([[45,30],[49,30],[45,34]],'#c6ad72',null);c.fillStyle='#d8e5dbb8';c.fillRect(33,13,10,5);c.fillStyle='#37404c';c.font='bold 8px monospace';c.textAlign='center';c.textBaseline='alphabetic';c.fillText('DUM',38,27);c.restore();}
+ for(const p of classicOutfitParts(hat,accessory)){c.beginPath();if(p.kind==='ellipse')c.ellipse(p.x,p.y,p.rx,p.ry,0,0,Math.PI*2);else if(p.kind==='rect')c.roundRect(p.x,p.y,p.w,p.h,p.r);else for(const [cmd,...v] of p.d){if(cmd==='M')c.moveTo(...v);else if(cmd==='L')c.lineTo(...v);else if(cmd==='Q')c.quadraticCurveTo(...v);else c.closePath();}if(p.fill){c.fillStyle=p.fill;c.fill();}if(p.stroke){c.strokeStyle=p.stroke;c.lineWidth=p.width;c.stroke();}}
  c.restore();
 }
 
-const PETS=[{id:'none',name:'No pet'},{id:'mini',name:'Mini crewmate'},{id:'stickman',name:'Stickman'},{id:'ufo',name:'UFO'},{id:'cyclops',name:'Blue cyclops dog'}];
+const PETS=[{id:'none',name:'No pet'},{id:'mini',name:'Mini crewmate'},{id:'stickman',name:'Stickman'},{id:'ufo',name:'UFO'},{id:'cyclops',name:'Blue cyclops dog'},{id:'hamster',name:'Hamster ball'},{id:'robot',name:'Mini robot'},{id:'alien',name:'Green alien'}];
 
 // One set of shapes keeps the wardrobe and the moving companions identical.
 function petArt(type,color,step=0){
@@ -612,6 +647,15 @@ function petArt(type,color,step=0){
   path([['M',-1,-17],['L',-7,-29],['Q',-14,-25,-9,-16],['Z']],'#3978bb','#193b60');path([['M',11,-18],['L',14,-28],['Q',20,-24,15,-14],['Z']],'#3978bb','#193b60');
   ellipse(5,-18,12,11,'#67b5ed','#193b60');ellipse(6,-20,6,6,'#f3f6e1','#264e76',1.4);ellipse(8,-20,2.6,3.6,'#233a61');ellipse(9,-21,1,1,'#fff');ellipse(11,-11,2,1.5,'#183858');
   path([['M',5,-8],['Q',8,-6,11,-8]],null,'#234768',1.2);
+ }else if(type==='hamster'){
+  ellipse(0,-14,19,19,'#5896ad','#a8d8df',1.5);ellipse(0,-14,16,16,'#8bc4d1','#355e7a',1.1);
+  ellipse(-4,-16,10,11,'#c99465','#77533f',1.4);ellipse(-9,-24,4,4,'#dfb683','#77533f',1.2);ellipse(1,-25,4,4,'#dfb683','#77533f',1.2);ellipse(-4,-12,7,7,'#f0d9a4',null);ellipse(0,-17,1.5,2,'#27374a');ellipse(5,-12,2,1.3,'#846052',null);ellipse(-9,-4+leg,4,2,'#bb885e','#77533f',1.1);ellipse(3,-4-leg,4,2,'#bb885e','#77533f',1.1);
+  path([['M',-10,-29],['Q',-17,-23,-16,-16]],null,'#ddf5f3',2.6);path([['M',10,-1],['Q',17,-9,15,-18]],null,'#bce4e7',1.5);
+ }else if(type==='robot'){
+  path([['M',0,-25],['L',0,-31]],null,'#a9bac3',1.5);ellipse(0,-32,2,2,'#e8957c','#534e61',1.1);rect(-12,-27,25,16,4,'#9aaeb8','#2c4058',1.6);rect(-8,-23,18,8,2,'#294b65','#2c4058',1.1);ellipse(-3,-19,2,2,'#a4e5e0',null);ellipse(5,-19,2,2,'#a4e5e0',null);rect(-9,-11,19,12,3,'#7b93a8','#2c4058',1.6);rect(-6,-7,6,4,1,'#d7c68d','#3c5666',1);ellipse(5,-5,1.8,1.8,'#e78f85',null);path([['M',-11,-9],['L',-16,-4+leg],['M',12,-9],['L',17,-4-leg]],null,'#a9bac3',3);rect(-10,-1+leg,8,4,1,'#3e5970');rect(4,-1-leg,8,4,1,'#3e5970');
+ }else if(type==='alien'){
+  path([['M',-4,-24],['Q',-8,-31,-3,-32]],null,'#87b881',2);ellipse(-3,-32,2,2,'#d6e2a0','#456c59',1.1);
+  path([['M',-17,0],['Q',-20,-7,-12,-11],['Q',-15,-26,1,-27],['Q',16,-26,13,-11],['Q',23,-5,16,0],['L',8,-4],['Q',1,4,-6,-3],['Z']],'#8bc584','#335d56',1.6);ellipse(2,-18,7,8,'#e7efc7','#477467',1.2);ellipse(4,-18,3.3,4.3,'#304f65',null);ellipse(5,-20,1.2,1.2,'#f9fff4',null);path([['M',-2,-7],['Q',2,-4,7,-8]],null,'#477467',1.5);
  }
  return shapes;
 }
@@ -1014,6 +1058,23 @@ class Game {
   }
   this.meeting={reporter,body:body?.id??null,lines,result:null};this.emit('meeting');return true;
  }
+ sendMeetingChat(value){
+  if(this.phase!=='meeting'||!this.meeting||this.meeting.result||typeof value!=='string')return false;
+  const text=value.replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,160);if(!text||(this.meeting.sentCount||0)>=24)return false;
+  this.meeting.sentCount=(this.meeting.sentCount||0)+1;const ghost=!this.player.alive;
+  this.meeting.lines.push({who:0,text,ghost});
+  const candidates=this.crew.filter(c=>c.id!==0&&(ghost?!c.alive:c.alive));
+  if(candidates.length){
+   const mentioned=candidates.find(c=>text.toLowerCase().includes(c.name.toLowerCase())),speaker=mentioned||candidates[Math.floor(this.random()*candidates.length)],previous=this.meeting.lines.find(l=>l.who===speaker.id&&!l.ghost);
+   let reply;
+   if(ghost)reply='We can still help. Finish your remaining tasks; the living crew cannot read this chat.';
+   else if(/\b(skip|evidence|proof)\b/i.test(text))reply='Vote on what you actually saw. A vent alone could be an Engineer.';
+   else if(/\b(where|room|location)\b/i.test(text)&&!speaker.imp)reply=`I was in ${this.roomAt(speaker.x,speaker.y)?.name||'the hallway'}. ${previous?.text.includes('saw')?'My earlier account is in the chat.':"I did not see the elimination."}`;
+   else reply=previous?.text||'I have no new evidence. What did you see?';
+   this.meeting.lines.push({who:speaker.id,text:reply,ghost});
+  }
+  this.emit('chat');return true;
+ }
  vote(selected){
   if(this.phase!=='meeting'||this.meeting.result)return null;
   if(!this.player.alive||!this.crew[selected]?.alive||selected===0)selected=-1;
@@ -1092,6 +1153,11 @@ class Game {
 
 const TAU=Math.PI*2;
 function crewSVG(color,size=56,hat='none',accessory='none'){return `<svg width="${size}" height="${size*1.3}" viewBox="0 -18 56 80" aria-hidden="true"><ellipse cx="26" cy="55" rx="20" ry="4" fill="#000" opacity=".22"/><rect x="5" y="23" width="13" height="25" rx="5" fill="${color}" stroke="#101b2b" stroke-width="3"/><path d="M15 49V22Q15 6 31 6Q46 6 46 22V49Q46 54 39 54H33V44H27V54H21Q15 54 15 49Z" fill="${color}" stroke="#101b2b" stroke-width="3.5" stroke-linejoin="round"/><path d="M17 31V44Q17 49 24 49H27V43H35V50H41Q44 49 44 43V29Z" fill="#000" opacity=".15"/><rect x="26" y="17" width="24" height="16" rx="7" fill="#93b7cc" stroke="#101b2b" stroke-width="3.5"/><path d="M31 20H43Q47 20 47 24H30Q29 22 31 20Z" fill="#d9f1f5"/>${outfitSVG(hat,accessory)}</svg>`;}
+function teamRevealMarkup(player,partners=[]){
+ const safe=name=>String(name||'Crewmate').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const allies=partners.filter(c=>c.id!==player.id).slice(0,2);
+ return `<div class="reveal-lineup ${allies.length?'has-teammates':''}" role="group" aria-label="${allies.length?'Your impostor team':'Your character'}">${allies.map((c,i)=>`<div class="reveal-ally ${i?'ally-left':'ally-right'}">${crewSVG(c.color,91,c.hat,c.accessory)}<strong>${safe(c.name)}</strong><small>TEAMMATE</small></div>`).join('')}<div class="reveal-main">${crewSVG(player.color,118,player.hat,player.accessory)}<strong>YOU</strong></div>${player.pet&&player.pet!=='none'?`<span class="lineup-pet">${petSVG(player.pet,55,player.color)}</span>`:''}</div>`;
+}
 class Renderer {
  camera=null;
  cameraIndex=null;
@@ -1178,10 +1244,13 @@ class Renderer {
   }
  }
  guide(target,x,y,radius){
-  const p=this.game.player,c=this.ctx,angle=Math.atan2(target.y-p.y,target.x-p.x),reach=Math.max(48,Math.min(radius*.76,Math.min(this.w,this.h)*.34));
+  const p=this.game.player,c=this.ctx,angle=Math.atan2(target.y-p.y,target.x-p.x),reach=Math.max(85,Math.min(radius*.88,Math.min(this.w,this.h)*.34));
   const ax=x+Math.cos(angle)*reach,ay=y+Math.sin(angle)*reach,repair=!!this.game.repairTargets.find(t=>t.id===target.id),color=repair?'#ff8983':'#eed584';
-  c.save();c.translate(ax,ay);c.rotate(angle);c.beginPath();c.moveTo(11,0);c.lineTo(-6,-8);c.lineTo(-3,0);c.lineTo(-6,8);c.closePath();c.fillStyle=color;c.strokeStyle='#10192c';c.lineWidth=3;c.stroke();c.fill();c.restore();
-  this.text(this.game.map.rooms.find(r=>r.id===target.room)?.name||'Task',ax,ay+23,11,color);
+  const pulse=this.reducedMotion?1:1+Math.sin(this.clock*4)*.08;
+  c.save();c.translate(ax,ay);c.rotate(angle);c.scale(pulse,pulse);c.shadowColor=color;c.shadowBlur=this.reducedMotion?0:18;c.beginPath();c.moveTo(25,0);c.lineTo(-17,-16);c.lineTo(-10,0);c.lineTo(-17,16);c.closePath();c.fillStyle=color;c.strokeStyle='#07101c';c.lineWidth=8;c.stroke();c.fill();c.shadowBlur=0;c.strokeStyle='#fff6d7';c.lineWidth=1.8;c.stroke();this.line(-28,-10,-20,0,color,3);this.line(-20,0,-28,10,color,3);c.restore();
+  const room=this.game.map.rooms.find(r=>r.id===target.room)?.name||'Task',label=(repair?'REPAIR · ':'TASK · ')+room,meters=Math.max(1,Math.round(dist(p,target)/25))+'m';
+  const width=Math.max(148,Math.min(215,label.length*6.2+40)),lx=Math.max(width/2+8,Math.min(this.w-width/2-8,ax)),ly=Math.max(44,Math.min(this.h-35,ay+44));
+  this.rr(lx-width/2,ly-14,width,29,7,'#101e2df5',color,2);this.text(label,lx-11,ly,10,'#fff2d8');this.text(meters,lx+width/2-19,ly,9,color);
  }
  room(r){
   const c=this.ctx;this.rr(r.x,r.y,r.w,r.h,15,r.tint,'#75818a',5);this.rr(r.x+7,r.y+7,r.w-14,r.h-14,10,null,'#121f2e',3);
@@ -1271,15 +1340,15 @@ class Renderer {
   const c=this.ctx;const t=this.reducedMotion?0:Math.sin(p.steps)*2;const x=p.x,y=p.y;
   c.save();c.translate(x,y);c.scale(p.dir,1);if(p.ghost)c.globalAlpha=.42;
   this.circle(0,13,19,'#09142266');
-  if(p.id===0){c.save();c.scale(1,.4);this.circle(0,36,29,null,'#7cf1d599',2.5);c.restore();}
+  if(p.id===this.game.player.id){c.save();c.scale(1,.4);this.circle(0,36,29,null,'#7cf1d599',2.5);c.restore();}
   this.rr(-22,-16+t,13,27,5,p.color,'#142332',3);
   this.rr(-14,-34+t,31,48,13,p.color,'#132332',3.5);
   this.rr(-12,3+t,11,17,4,p.color,'#142332',3);this.rr(6,4-t,11,16,4,p.color,'#142332',3);
   c.save();c.globalAlpha*=.16;this.rr(-12,-4+t,28,13,4,'#04121c');c.restore();
   this.rr(-1,-25+t,25,17,7,'#93b8c9','#142332',3.5);this.rr(3,-22+t,16,5,2,'#d0ecf0');drawOutfit(c,p.hat,p.accessory,t);c.restore();
-  if(p.id===0){this.text(p.ghost?'YOU · GHOST':'YOU',x,y-(p.hat&&p.hat!=='none'?72:49),11,'#9aefd5');}
+  if(p.id===this.game.player.id){this.text(p.ghost?'YOU · GHOST':'YOU',x,y-(p.hat&&p.hat!=='none'?72:49),11,'#9aefd5');}
   else this.text(p.name,x,y-(p.hat&&p.hat!=='none'?67:43),10,p.imp&&this.game.isImpostor?'#f59aa5':'#d6dde0c9');
-  if(playing&&p.imp&&this.game.role==='impostor')this.text('IMPOSTOR',x,y+34,9,'#ff9ba6');
+  if(playing&&p.imp&&this.game.role==='impostor'){const ally=p.id!==this.game.player.id;if(ally)this.rr(x-38,y+25,76,19,5,'#442335ee','#d77889',1.5);this.text(ally?'TEAMMATE':'IMPOSTOR',x,y+34,9,ally?'#ffe6cf':'#ff9ba6');}
  }
  body(b){const c=this.ctx;c.save();c.translate(b.x,b.y);c.rotate(-.35);this.rr(-22,-8,39,22,10,b.color,'#162534',4);this.rr(7,-17,8,22,3,'#d1d9ce','#344653',2);this.circle(8,-17,5,'#d1d9ce');this.circle(14,-17,5,'#d1d9ce');c.restore();}
 }
@@ -1367,7 +1436,7 @@ function killSceneMarkup(event,avatar,escape){
  const style=['knife','chomp','blaster'].includes(event.style)?event.style:'knife';
  const weapon=style==='knife'?'<svg viewBox="0 0 130 70" aria-hidden="true"><path d="m20 46 35-17 58-19-30 39-26 0-21 11Z" fill="#bcd7db" stroke="#35283d" stroke-width="4"/><path d="m8 47 19-11 23 18-15 13Z" fill="#7a584d" stroke="#35283d" stroke-width="4"/><path d="m54 34 42-15" stroke="#eff7df" stroke-width="3"/></svg>':style==='blaster'?'<svg viewBox="0 0 140 80" aria-hidden="true"><path d="M12 25h86v32H58l-5 20H30l4-20H12Z" fill="#637e98" stroke="#25293d" stroke-width="4"/><path d="M86 30h32v19H86Z" fill="#c3d5cd" stroke="#25293d" stroke-width="4"/><path d="M24 33h42v13H24Z" fill="#e69e81"/><path d="m124 19 8 17 18-8-9 17 14 10-20-3-8 19-1-22-17-5 17-8Z" class="muzzle-burst" fill="#f6d59c"/></svg>':'';
  const mouth=style==='chomp'?'<div class="kill-mouth"><svg viewBox="0 0 160 110" aria-hidden="true"><path d="M9 22Q78-18 151 26Q156 103 82 105Q5 95 9 22Z" fill="#1b142a" stroke="#e3929b" stroke-width="6"/><path d="m16 23 11 24 12-29 14 26 12-31 15 28 13-28 15 31 14-26 11 29 12-22m-118 58 14-19 12 24 14-23 15 24 14-24 13 22 13-24 13 18" fill="#eee4c2" stroke="#eee4c2" stroke-width="3"/></svg></div>':'';
- return `<div class="kill-backdrop"></div><div class="kill-blast"></div><div class="kill-title">${event.victim.id===0?'ELIMINATED':'TAKEDOWN'}</div><div class="kill-stage ${style}"><div class="kill-attacker">${avatar(event.killer.color,155,event.killer.hat,event.killer.accessory)}${mouth}<div class="kill-weapon">${weapon}</div></div><div class="kill-victim">${avatar(event.victim.color,155,event.victim.hat,event.victim.accessory)}</div>${event.victim.pet&&event.victim.pet!=='none'?`<div class="kill-pet" aria-label="Pet eliminated">${petSVG(event.victim.pet,77,event.victim.color)}</div>`:''}<div class="kill-impact">✦</div></div><div class="kill-caption">${escape(event.killer.name)} <span>→</span> ${escape(event.victim.name)}</div>`;
+ return `<div class="kill-backdrop"></div><div class="kill-blast"></div><div class="kill-title">${event.victim.id===(event.youId??0)?'ELIMINATED':'TAKEDOWN'}</div><div class="kill-stage ${style}"><div class="kill-attacker">${avatar(event.killer.color,155,event.killer.hat,event.killer.accessory)}${mouth}<div class="kill-weapon">${weapon}</div></div><div class="kill-victim">${avatar(event.victim.color,155,event.victim.hat,event.victim.accessory)}</div>${event.victim.pet&&event.victim.pet!=='none'?`<div class="kill-pet" aria-label="Pet eliminated">${petSVG(event.victim.pet,77,event.victim.color)}</div>`:''}<div class="kill-impact">✦</div></div><div class="kill-caption">${escape(event.killer.name)} <span>→</span> ${escape(event.victim.name)}</div>`;
 }
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -1437,7 +1506,7 @@ function returnLobby(){
 }
 function updateReveal(){
  if(game.phase!=='intro'||game.introStage!=='reveal'||$('#roleReveal').classList.contains('visible'))return;
- const role=ROLE_INFO[game.role],partners=game.crew.filter(c=>c.imp&&c.id!==0);$('#revealTitle').textContent=role.name;$('#revealDescription').textContent=role.description;$('#revealCrew').innerHTML=crewSVG(game.player.color,103,game.player.hat,game.player.accessory)+(game.player.pet!=='none'?`<span class="reveal-pet">${petSVG(game.player.pet,62,game.player.color)}</span>`:'');$('#revealTeam').textContent=game.isImpostor?(partners.length?'YOUR TEAM · '+partners.map(c=>c.name).join(' · '):'SOLO IMPOSTOR · '+(game.crew.length-1)+' CREWMATES'):'CREW TEAM · '+game.config.impostors+' IMPOSTOR'+(game.config.impostors>1?'S':'')+' ON '+game.map.name.toUpperCase();$('#roleReveal').classList.add('visible');beep(game.isImpostor?'kill':'success');
+ const role=ROLE_INFO[game.role],partners=game.crew.filter(c=>c.imp&&c.id!==0);$('#revealTitle').textContent=role.name;$('#revealDescription').textContent=role.description;$('#revealCrew').innerHTML=teamRevealMarkup(game.player,game.isImpostor?partners:[]);$('#revealTeam').textContent=game.isImpostor?(partners.length?'YOUR IMPOSTOR TEAM · '+partners.map(c=>c.name).join(' · '):'SOLO IMPOSTOR · '+(game.crew.length-1)+' CREWMATES'):'CREW TEAM · '+game.config.impostors+' IMPOSTOR'+(game.config.impostors>1?'S':'')+' ON '+game.map.name.toUpperCase();$('#roleReveal').classList.add('visible');beep(game.isImpostor?'kill':'success');
 }
 function finishReveal(){
  const token=revealToken;$('#roleReveal').classList.add('leaving');document.body.classList.remove('revealing');
@@ -1600,7 +1669,7 @@ function showMap(){
 function showSabotage(){
  if(game.phase!=='playing'||game.role!=='impostor'||!game.player.alive)return;
  const unavailable=!!game.sabotageState||game.sabotageCooldown>0;
- closable(`<div class="eyebrow" style="color:var(--red)">IMPOSTOR CONTROLS</div><h2>Pick your distraction.</h2><p>Choose a system to sabotage. The crew must travel to the damaged panels to repair it.</p><div class="sabotage-options">${Object.entries(game.map.systems).map(([kind,s])=>`<button class="sabotage-option" data-sabotage="${kind}" ${unavailable?'disabled':''}><span class="system-icon">${s.icon}</span><strong>${s.name}</strong><small>${s.description}</small><span class="sabotage-destination">${game.map.rooms.find(r=>r.id===s.room).name} ↗</span></button>`).join('')}</div><div class="panel-message" id="sabotageStatus">${game.sabotageState?'A SABOTAGE IS ALREADY ACTIVE':game.sabotageCooldown>0?'SYSTEM COOLDOWN · '+Math.ceil(game.sabotageCooldown)+'s':'ONE SYSTEM AT A TIME · 25s COOLDOWN AFTER REPAIR'}</div>`,'sabotage-modal',true);
+ closable(`<div class="eyebrow" style="color:var(--red)">IMPOSTOR CONTROLS</div><h2>Pick your distraction.</h2><p>Choose a system to sabotage. The crew must travel to the damaged panels to repair it.</p><div class="sabotage-options">${Object.entries(game.map.systems).map(([kind,s])=>`<button class="sabotage-option" data-sabotage="${kind}" ${unavailable?'disabled':''}><span class="system-icon">${s.icon}</span><strong>${s.name}</strong><small>${s.description}</small><span class="sabotage-destination">${game.map.rooms.find(r=>r.id===s.room).name}</span></button>`).join('')}</div><div class="panel-message" id="sabotageStatus">${game.sabotageState?'A SABOTAGE IS ALREADY ACTIVE':game.sabotageCooldown>0?'SYSTEM COOLDOWN · '+Math.ceil(game.sabotageCooldown)+'s':'ONE SYSTEM AT A TIME · 25s COOLDOWN AFTER REPAIR'}</div>`,'sabotage-modal',true);
  $$('[data-sabotage]').forEach(b=>b.onclick=()=>{if(game.sabotage(b.dataset.sabotage)){closeModal();renderMission();beep('report');}});
 }
 function toggleTasks(){const collapsed=$('#roundTasks').classList.toggle('collapsed');$('#taskToggle').setAttribute('aria-expanded',!collapsed);}
@@ -1639,12 +1708,11 @@ function showKillVisual(event){
   pendingWin=pendingDeath=pendingMeeting=false;
  },prefs.motion?1200:1900);
 }
-$('#locateRepair').onclick=()=>{const t=game.repairTarget;if(t&&game.player.alive){game.goTo(t.x,t.y);toast('Heading to '+game.map.rooms.find(r=>r.id===t.room).name+'. Press E at the red repair panel.');}};
 function showMeeting(){
  const m=game.meeting;selectedVote=null;beep('report');renderMission();
- modal(`<div class="meeting-heading"><div class="meeting-icon">⚑</div><div><div class="eyebrow">ALL CREW · ASSEMBLE</div><h2>${m.body!==null?'Body reported':'Emergency meeting'}</h2></div></div><p>Who is the impostor? Read the crew's accounts, then select a suspect.</p><div class="meeting-layout"><div><div class="section-heading"><span>CREW MANIFEST</span><span>${game.alive.length} ALIVE</span></div><div class="vote-list">${game.crew.map(c=>`<button class="vote-person ${c.alive?'':'dead'}" data-vote="${c.id}" ${!c.alive||c.id===0?'disabled':''}>${crewSVG(c.color,24,c.hat,c.accessory)}<span>${c.id===0?'You':escape(c.name)}<small>${c.alive?(c.id===0?'YOUR CREWMATE':'AWAITING VOTE'):'ELIMINATED'}</small></span></button>`).join('')}</div></div><div><div class="section-heading"><span>CREW DISCUSSION</span><span>LOCAL AI</span></div><div class="discussion">${m.lines.map(l=>`<div class="chat-line"><strong style="color:${game.crew[l.who].color}">${escape(game.crew[l.who].name)}</strong>${escape(l.text)}</div>`).join('')}<div class="chat-line"><strong style="color:var(--yellow)">Ship computer</strong>${game.player.alive?'Witnesses can be wrong. Consider what you saw before casting your vote.':'You are a ghost. You can read the meeting, but cannot vote.'}</div></div></div></div><div class="meeting-actions"><button class="secondary-btn" id="skipVote">${game.player.alive?'Skip vote':'Observe vote'}</button><button class="launch-btn" id="castVote" disabled>Vote to eject <span>↗</span></button></div>`,'meeting-modal');
+ modal(`<div class="meeting-heading"><div class="meeting-icon">⚑</div><div><div class="eyebrow">ALL CREW · ASSEMBLE</div><h2>${m.body!==null?'Body reported':'Emergency meeting'}</h2></div></div><p>Who is the impostor? Read the crew's accounts, then select a suspect.</p><div class="meeting-layout"><div><div class="section-heading"><span>CREW MANIFEST</span><span>${game.alive.length} ALIVE</span></div><div class="vote-list">${game.crew.map(c=>`<button class="vote-person ${c.alive?'':'dead'}" data-vote="${c.id}" ${!c.alive||c.id===0?'disabled':''}>${crewSVG(c.color,24,c.hat,c.accessory)}<span>${c.id===0?'You':escape(c.name)}<small>${c.alive?(c.id===0?'YOUR CREWMATE':'AWAITING VOTE'):'ELIMINATED'}</small></span></button>`).join('')}</div></div><div><div class="section-heading"><span>CREW DISCUSSION</span><span>AI CREW · YOUR CHAT</span></div><div class="discussion" id="meetingDiscussion">${m.lines.map(l=>`<div class="chat-line"><strong style="color:${game.crew[l.who].color}">${escape(game.crew[l.who].name)}</strong>${escape(l.text)}</div>`).join('')}<div class="chat-line"><strong style="color:var(--yellow)">Ship computer</strong>${game.player.alive?'Type below to ask questions or share what you saw. Witnesses can be wrong. Consider what you saw before casting your vote.':'You are a ghost. You can read the meeting, but cannot vote.'}</div></div><form id="meetingChatForm" class="meeting-chat-form"><label for="meetingChatInput">${game.player.alive?'YOUR MESSAGE':'GHOST CHAT · HIDDEN FROM LIVING CREW'}</label><div><input id="meetingChatInput" maxlength="160" autocomplete="off" placeholder="Type a message…" aria-label="Meeting chat message"><button type="submit">Send</button></div><small id="meetingChatHint">Enter to send · messages stay in this game.</small></form></div></div><div class="meeting-actions"><button class="secondary-btn" id="skipVote">${game.player.alive?'Skip vote':'Observe vote'}</button><button class="launch-btn" id="castVote" disabled>Vote to eject <span>↗</span></button></div>`,'meeting-modal');
  $$('[data-vote]').forEach(b=>{if(!game.player.alive)b.disabled=true;b.onclick=()=>{selectedVote=Number(b.dataset.vote);$$('[data-vote]').forEach(el=>el.classList.toggle('selected',el===b));$('#castVote').disabled=false;$('#castVote').innerHTML=`Vote ${escape(game.crew[selectedVote].name)} <span>↗</span>`;beep();};});
- $('#skipVote').onclick=()=>game.vote(-1);$('#castVote').onclick=()=>game.vote(selectedVote);
+ $('#meetingChatForm').onsubmit=e=>{e.preventDefault();const input=$('#meetingChatInput');if(!game.sendMeetingChat(input.value)){$('#meetingChatHint').textContent=input.value.trim()?'Message limit reached for this meeting.':'Type your message first.';return;}$('#meetingDiscussion').innerHTML=game.meeting.lines.map(l=>`<div class="chat-line ${l.ghost?'ghost-chat-line':''}"><strong style="color:${game.crew[l.who].color}">${escape(game.crew[l.who].name)}${l.ghost?' · GHOST':''}</strong>${escape(l.text)}</div>`).join('');$('#meetingDiscussion').scrollTop=$('#meetingDiscussion').scrollHeight;input.value='';input.focus();beep();};$('#skipVote').onclick=()=>game.vote(-1);$('#castVote').onclick=()=>game.vote(selectedVote);
 }
 function showVoteResult(result){
  const c=result.ejected!==null?game.crew[result.ejected]:null;
@@ -1663,7 +1731,7 @@ $('#zoomIn').onclick=()=>zoom(.2);$('#zoomOut').onclick=()=>zoom(-.2);$('#center
 window.addEventListener('keydown',e=>{
  if(killVisual)return;
  if(e.code==='Escape'){if(game.phase!=='meeting'&&game.phase!=='ended')closeModal();return;}
- if(e.target.matches('input,textarea'))return;
+ if(e.target.matches('input,textarea,select'))return;if(e.code==='Enter'&&game.phase==='meeting'&&!e.target.matches('button,a')){$('#meetingChatInput')?.focus();e.preventDefault();return;}
  if(e.code==='KeyM'&&!e.repeat&&game.phase==='playing'){if($('.ship-map-modal'))closeModal();else if(!$('#modalRoot').children.length)showMap();return;}
  if(e.code==='KeyT'&&!e.repeat&&game.phase==='playing'&&!$('#modalRoot').children.length){toggleTasks();return;}
  if(e.code==='KeyF'&&!e.repeat&&game.phase==='playing'&&!$('#modalRoot').children.length){showSabotage();return;}
@@ -1690,7 +1758,7 @@ function updateControls(){
  $('#locationText').textContent=p.ghost?'Ghost · '+(game.roomAt(p.x,p.y)?.name||'Hallway'):game.roomAt(p.x,p.y)?.name||'Hallway';
  $('#roomName').textContent=(p.ghost?'Ghost · ':'')+(game.roomAt(p.x,p.y)?.name||'Hallway');
  const s=game.sabotageState,alert=$('#systemAlert');alert.hidden=!s;document.body.classList.toggle('has-sabotage',!!s);
- if(s){const system=game.map.systems[s.kind],repair=game.repairTarget;$('#alertIcon').textContent=system.icon;$('#alertTitle').textContent=system.action+(s.remaining!=null?' · '+Math.max(0,Math.ceil(s.remaining))+'s':'');$('#alertDetail').textContent=(repair?game.map.rooms.find(r=>r.id===repair.room).name:'System restoring')+(system.terminals.length>1?' · '+s.repaired.size+'/'+system.terminals.length+' panels restored':' · repair required');alert.classList.toggle('critical',s.remaining!=null);$('#locateRepair').disabled=!p.alive;}
+ if(s){const system=game.map.systems[s.kind],repair=game.repairTarget;$('#alertIcon').textContent=system.icon;$('#alertTitle').textContent=system.action+(s.remaining!=null?' · '+Math.max(0,Math.ceil(s.remaining))+'s':'');$('#alertDetail').textContent=(repair?game.map.rooms.find(r=>r.id===repair.room).name:'System restoring')+(system.terminals.length>1?' · '+s.repaired.size+'/'+system.terminals.length+' panels restored':' · repair required');alert.classList.toggle('critical',s.remaining!=null);}
  if($('#liveState'))$('#liveState').textContent=s?.remaining!=null?`● EMERGENCY · ${Math.max(0,Math.ceil(s.remaining))}s REMAINING`:'● ROUND IS LIVE';
  if($('#sabotageStatus')){const unavailable=!!s||game.sabotageCooldown>0;$$('[data-sabotage]').forEach(b=>b.disabled=unavailable);$('#sabotageStatus').textContent=s?'A SABOTAGE IS ALREADY ACTIVE':game.sabotageCooldown>0?'SYSTEM COOLDOWN · '+Math.ceil(game.sabotageCooldown)+'s':'ONE SYSTEM AT A TIME · 25s COOLDOWN AFTER REPAIR';}
  $('#useBtn').disabled=!target||paused||killVisual;$('#reportBtn').disabled=!p.alive||p.inVent||!game.bodies.some(b=>!game.reported.has(b.id)&&dist(p,b)<105)||paused||killVisual;
