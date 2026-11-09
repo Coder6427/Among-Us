@@ -411,6 +411,11 @@ body.kill-playing .controls-bar,body.kill-playing .round-hud,body.kill-playing .
 body.reduced-motion .kill-attacker,body.reduced-motion .kill-victim,body.reduced-motion .kill-weapon,body.reduced-motion .kill-mouth,body.reduced-motion .kill-impact,body.reduced-motion .kill-title,body.reduced-motion .kill-blast{animation:none!important;transform:none}
 body.reduced-motion .kill-impact{opacity:.6}
 @media(max-height:550px) and (orientation:landscape){.cameras-modal{max-width:920px}.cameras-modal>p{display:none}.cameras-modal h2{font-size:21px}.cameras-modal .modal-live-state{margin-bottom:9px}.cameras-modal .camera-grid{margin-top:10px;margin-bottom:10px}}
+
+.role-target-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:9px;margin-top:19px}
+.role-target{min-height:92px;padding:8px 4px;display:grid;justify-items:center;align-content:center;gap:3px;min-width:0;border:1px solid #4e7b88;border-radius:9px;background:#1b3849;color:#e7f3ef;cursor:pointer}
+.role-target:hover,.role-target:focus-visible{border-color:#a0e3dc;background:#274b59}
+.role-target strong{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 </style>
 <style>#avatarPreview{position:relative}
 .lobby-pet{position:absolute;right:-10px;bottom:-4px;filter:drop-shadow(0 2px 2px #0a1524)}
@@ -494,11 +499,12 @@ html:not(:lang(en)) .reveal-ally strong{font-family:var(--font);letter-spacing:0
           <div class="device-picker" aria-label="Control layout"><button data-device="pc" aria-pressed="true"><span>▣</span> PC<small>Keyboard + mouse</small></button><button data-device="mobile" aria-pressed="false"><span>▯</span> Mobile<small>Touch joystick</small></button></div>
           <div class="section-heading role-heading"><span>CHOOSE YOUR ROLE</span><span class="small-info" title="Play with an AI crew">ⓘ</span></div>
           <div class="role-options">
-            <button class="role-card random-role selected" data-role="random" aria-pressed="true"><span class="role-icon">?</span><span><strong>Random</strong><small>Let the ship decide. Four possible roles.</small></span><i></i></button>
+            <button class="role-card random-role selected" data-role="random" aria-pressed="true"><span class="role-icon">?</span><span><strong>Random</strong><small>Let the ship decide your role.</small></span><i></i></button>
             <button class="role-card" data-role="crew" aria-pressed="false"><span class="role-icon crew-icon">✧</span><span><strong>Crewmate</strong><small>Tasks & deduction</small></span><i></i></button>
             <button class="role-card" data-role="impostor" aria-pressed="false"><span class="role-icon imp-icon">⌁</span><span><strong>Impostor</strong><small>Sabotage & eliminate</small></span><i></i></button>
             <button class="role-card" data-role="scientist" aria-pressed="false"><span class="role-icon scientist-icon">♡</span><span><strong>Scientist</strong><small>Portable vitals · B</small></span><i></i></button>
             <button class="role-card" data-role="engineer" aria-pressed="false"><span class="role-icon engineer-icon">⚙</span><span><strong>Engineer</strong><small>Vents · 25s recharge</small></span><i></i></button>
+            <button class="role-card" data-role="shapeshifter" aria-pressed="false" hidden><span class="role-icon imp-icon">◈</span><span><strong>Shapeshifter</strong><small>Disguise · 3 impostors only</small></span><i></i></button>
           </div>
           <button class="launch-btn" id="startBtn">Start game <span>↗</span></button>
           <div class="start-note"><i></i><span id="crewReady">14 AI players are ready to board</span></div>
@@ -512,7 +518,7 @@ html:not(:lang(en)) .reveal-ally strong{font-family:var(--font);letter-spacing:0
           <div class="crew-status"><div class="section-heading"><span>CREW MANIFEST</span><span id="aliveCount">8 ALIVE</span></div><div id="crewList"></div></div>
           <button class="quiet-btn" id="leaveBtn">← Leave round</button>
         </section>
-        <div class="sidebar-bottom"><span class="signal-bars"><i></i><i></i><i></i><i></i></span><span>LOCAL SIMULATION</span><span class="version">v1.8</span></div>
+        <div class="sidebar-bottom"><span class="signal-bars"><i></i><i></i><i></i><i></i></span><span>LOCAL SIMULATION</span><span class="version">v1.9</span></div>
       </aside>
       <section class="game-area" aria-label="Game">
         <div class="map-heading"><div><span class="eyebrow" id="mapSubtitle">EXPANDED DEEP-SPACE CRUISER</span><h2><span id="mapTitle">The Skeld</span> <span>↗</span></h2></div><div class="map-tags"><span><i></i> SYSTEMS ONLINE</span><span class="tag-outline" id="impostorTag">2 IMPOSTORS</span></div></div>
@@ -540,6 +546,41 @@ html:not(:lang(en)) .reveal-ally strong{font-family:var(--font);letter-spacing:0
     <div id="killScene" class="kill-scene" hidden role="status" aria-live="polite"></div>
   </div>
   <script type="module">const TRANSLATIONS=`
+Let the ship decide your role.|由飞船随机分配你的身份。|役職はランダムに決まります。
+the hallway|走廊|通路
+Guardian Angel|守护天使|守護天使
+Shapeshifter|变形者|シェイプシフター
+Protect a nearby crewmate from one kill for 12 seconds.|保护附近的一名船员，12 秒内可挡下一次袭击。|近くのクルーを12秒間守り、キルを1回防ぎます。
+Copy another living player’s appearance for 16 seconds. You are on the impostor team.|复制另一名存活玩家的外观，持续 16 秒。你属于内鬼阵营。|生存中のプレイヤーの姿を16秒間コピーできます。インポスター陣営です。
+Disguise · 3 impostors only|伪装 · 仅限 3 名内鬼时|変身 · インポスター3人のときのみ
+Protect|保护|守る
+Shift|变形|変身
+Unshift|解除变形|変身解除
+Protect a crewmate|保护一名船员|クルーを守る
+Choose a disguise|选择伪装对象|変身する相手を選ぶ
+Choose a nearby living player. The shield blocks one kill for 12 seconds.|选择附近的一名存活玩家。护盾持续 12 秒，可挡下一次袭击。|近くの生存プレイヤーを選んでください。シールドは12秒間続き、キルを1回防ぎます。
+Copy a living player’s suit, name, and outfit for 16 seconds.|复制一名存活玩家的颜色、名字和装扮，持续 16 秒。|生存プレイヤーの色・名前・衣装を16秒間コピーします。
+Move closer to a living player.|请靠近一名存活玩家。|生存しているプレイヤーに近づいてください。
+No disguises are available.|没有可伪装的对象。|変身できる相手がいません。
+That player is no longer available.|该玩家已无法选中。|そのプレイヤーは選べなくなりました。
+You are the Guardian Angel. Use Protect to shield a nearby crewmate.|你是守护天使。使用「保护」为附近的船员加上护盾。|あなたは守護天使です。「守る」で近くのクルーにシールドを張れます。
+A Guardian Angel saved you!|守护天使救了你！|守護天使に助けられました！
+A Guardian Angel blocked your kill.|守护天使挡下了你的袭击。|守護天使にキルを防がれました。
+Move close to a living player and wait for Protect to recharge.|请靠近一名存活玩家，并等待保护能力冷却。|生存プレイヤーに近づき、「守る」の再使用を待ってください。
+Choose a living player when Shift is ready.|变形能力就绪后，选择一名存活玩家。|変身が使えるようになったら、生存プレイヤーを選んでください。
+Wait for the transformation to finish.|请等待变形结束。|変身が終わるまで待ってください。
+Add bot|添加机器人|ボットを追加
+Remove bot|移除机器人|ボットを削除
+Remove player|移除玩家|プレイヤーを退出させる
+Bot|机器人|ボット
+Bots can only be changed in the lobby.|只能在大厅添加或移除机器人。|ボットの追加や削除はロビーで行えます。
+Choose a bot to remove.|请选择要移除的机器人。|削除するボットを選んでください。
+At least 4 players are needed, including bots.|至少需要 4 名玩家，机器人也计入人数。|ボットを含めて4人以上必要です。
+Reduce specialist roles or add more players.|请减少特殊身份数量，或增加玩家。|特殊役職の数を減らすか、プレイヤーを追加してください。
+One impostor will be the Shapeshifter.|一名内鬼将成为变形者。|インポスターのうち1人がシェイプシフターになります。
+Start when the crew is ready.|全员准备就绪后即可开始。|全員の準備ができたら開始できます。
+Host a ship for your friends, or find your next crew. Up to 15 players. Fill empty seats with bots and choose from two maps.|为朋友创建房间，或寻找新的船员。最多支持 15 名玩家，可以用机器人补位并选择两张地图之一。|友達と部屋を作ったり、次の仲間を探したりできます。最大15人で、空席にはボットを追加でき、マップは2種類あります。
+Fan-made game with original artwork. Share your room link so friends can join.|这是使用原创美术的同人游戏。分享房间链接即可邀请朋友加入。|オリジナルのイラストを使ったファン制作ゲームです。部屋のリンクを共有して友達を招待できます。
 Language|语言|言語
 Game language|游戏语言|ゲームの言語
 Changes immediately. Your round and typed messages stay intact.|立即切换，不会重置对局或修改已输入的文字。|すぐに切り替わります。進行中のラウンドや入力した文章は保持されます。
@@ -1206,6 +1247,12 @@ Game map. Move with WASD or arrow keys. E to use, Q to kill, R to report, V to v
 `;
 
 const FORMATS=`
+{n} bot|{n} 个机器人|ボット{n}体
+{n} bots|{n} 个机器人|ボット{n}体
+This round needs {n} players including bots.|本局需要 {n} 名玩家，机器人也计入人数。|このラウンドにはボットを含めて{n}人必要です。
+Protect · {n}s|保护 · {n} 秒|守る · {n}秒
+Shift · {n}s|变形 · {n} 秒|変身 · {n}秒
+Unshift · {n}s|解除变形 · {n} 秒|変身解除 · {n}秒
 {n}s|{n}秒|{n}秒
 {n}/{n2} panels restored|已修复{n}/{n2}个面板|復旧済みパネル {n}/{n2}
 {n} players|{n}名玩家|{n}人
@@ -1521,9 +1568,14 @@ const ROLE_INFO={
  crew:{name:'Crewmate',color:'#78ddc1',description:'Complete your tasks. Watch your crew. Find the impostor.'},
  impostor:{name:'Impostor',color:'#f37988',description:'Blend in, sabotage the ship, and leave no witnesses.'},
  scientist:{name:'Scientist',color:'#81c5f4',description:'You are on the crew. Use B to check live vitals. Tasks recharge your tablet.'},
- engineer:{name:'Engineer',color:'#edbc77',description:'You are on the crew. Use V near a vent to travel. Vents recharge every 25 seconds.'}
+ engineer:{name:'Engineer',color:'#edbc77',description:'You are on the crew. Use V near a vent to travel. Vents recharge every 25 seconds.'},
+ guardian:{name:'Guardian Angel',color:'#9ce8ff',description:'Protect a nearby crewmate from one kill for 12 seconds.'},
+ shapeshifter:{name:'Shapeshifter',color:'#ff7589',description:'Copy another living player’s appearance for 16 seconds. You are on the impostor team.'}
 };
+const ROLE_TIMING={protectRange:150,shield:12,protectCooldown:30,shift:16,shiftCooldown:30,morph:1.1,blockedKillCooldown:8};
+const isImpostorRole=role=>role==='impostor'||role==='shapeshifter';
 function shuffled(items,random=Math.random){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
+function botProfile(random,speed=1){return {speed:(83+random()*40)*speed,caution:.25+random()*.7,social:random(),repair:random()>.25,reportDelay:1.4+random()*4.5,dwell:7+random()*6,roaming:.08+random()*.2,watchfulness:.15+random()*.7};}
 let ROOMS = [
  {id:'upper',name:'Upper Engine',x:110,y:130,w:240,h:215,tint:'#394254'},
  {id:'cafeteria',name:'Cafeteria',x:535,y:100,w:390,h:245,tint:'#334758'},
@@ -1639,7 +1691,7 @@ class Game {
   const palette=randomize?shuffled(COLORS.filter((_,i)=>i!==color),this.random):COLORS.filter((_,i)=>i!==color);
   const available=NAMES.filter(n=>n.toLowerCase()!==String(name).toLowerCase());const names=(randomize?shuffled(available,this.random):available).slice(0,this.config.players-1);
   names.forEach((n,i)=>{
-   const rand=this.random,profile={speed:83+rand()*40,caution:.25+rand()*.7,social:rand(),repair:rand()>.25,reportDelay:1.4+rand()*4.5,dwell:7+rand()*6,roaming:.08+rand()*.2,watchfulness:.15+rand()*.7};
+   const rand=this.random,profile=botProfile(rand);
    const taskOrder=shuffled(this.map.tasks,rand).slice(0,8+Math.floor(rand()*3));
    const columns=5,rows=Math.ceil((this.config.players-1)/columns),x=cafe.x+cafe.w*(.13+(i%columns)*.18),y=cafe.y+cafe.h*(.2+Math.floor(i/columns)*(.5/Math.max(1,rows-1)));
    this.crew.push({id:i+1,name:n,color:palette[i],x:x+(randomize?rand()*16-8:0),y:y+(randomize?rand()*14-7:0),alive:true,inVent:false,dir:rand()>.5?1:-1,path:[],steps:0,wait:randomize?rand()*3:1+i*.6,suspicion:0,imp:false,role:'crew',profile,taskOrder,completedTasks:new Set(),ghostWork:0,ventCooldown:10+rand()*25,huntAt:0,memory:new Map(),observeAt:0,hesitate:0,nextPauseAt:8+rand()*10,cameraUntil:0,hat:randomize?HATS[Math.floor(rand()*HATS.length)].id:'none',accessory:randomize?ACCESSORIES[Math.floor(rand()*ACCESSORIES.length)].id:'none'});
@@ -1667,14 +1719,18 @@ class Game {
   const p=c.companion;if(!p||!p.alive)return;p.alive=false;p.deathAt=this.time;p.trail=[];
  }
  getPets(){
-  return this.crew.filter(c=>!c.inVent&&c.companion&&(c.alive&&c.companion.alive||!c.companion.alive&&this.time-c.companion.deathAt<2.2)).map(c=>{const p=c.companion;return {ownerId:c.id,type:p.type,color:p.color,x:p.x,y:p.y,dir:p.dir,steps:p.steps,alive:p.alive,deathProgress:p.alive?0:Math.min(1,(this.time-p.deathAt)/2.2)};});
+  return this.crew.filter(c=>!c.inVent&&!c.disguise&&c.companion&&(c.alive&&c.companion.alive||!c.companion.alive&&this.time-c.companion.deathAt<2.2)).map(c=>{const p=c.companion;return {ownerId:c.id,type:p.type,color:p.color,x:p.x,y:p.y,dir:p.dir,steps:p.steps,alive:p.alive,deathProgress:p.alive?0:Math.min(1,(this.time-p.deathAt)/2.2)};});
  }
  start(role,name,color,{intro=false,...options}={}){
   this.configure(options);
-  this.requestedRole=role;this.role=role==='random'?['crew','scientist','engineer','impostor'][Math.floor(this.random()*4)]:ROLE_INFO[role]?role:'crew';
+  this.requestedRole=role;
+  const roles=['crew','scientist','engineer','impostor'];if(this.config.impostors===3)roles.push('shapeshifter');
+  this.role=role==='random'?roles[Math.floor(this.random()*roles.length)]:roles.includes(role)?role:role==='shapeshifter'?'impostor':'crew';
   this.resetCrew(name,color,true);this.player.role=this.role;this.phase=intro?'intro':'playing';this.introElapsed=0;this.time=0;this.bodies=[];this.events=[];this.logs=[];this.tasks=assignTasks(this.random,6,this.map.tasks);this.killCooldown=15;this.sabotageCooldown=15;this.lights=0;this.crewProgress=0;this.lastMeeting=-35;this.emergencies=1;this.meetings=0;this.kills=0;this.reported=new Set();
   const candidates=shuffled(this.crew.slice(1),this.random),impostors=this.isImpostor?[this.player,...candidates.slice(0,this.config.impostors-1)]:candidates.slice(0,this.config.impostors);
   this.impIds=new Set(impostors.map(c=>c.id));this.impId=impostors[0].id;for(const c of impostors){c.imp=true;c.role='impostor';c.killCooldown=27+this.random()*15;}
+  if(this.config.impostors===3){const shifter=this.role==='shapeshifter'?this.player:impostors.find(c=>c!==this.player);shifter.role='shapeshifter';}
+  this.guardianId=null;this.morphSerial=0;
   this.outcome=null;this.meeting=null;this.autoTarget=null;
   const specialists=shuffled(this.crew.slice(1).filter(c=>!c.imp),this.random);if(specialists[0])specialists[0].role='engineer';if(specialists[1])specialists[1].role='scientist';
   specialists.slice(0,2).forEach(c=>c.profile.repair=true);
@@ -1683,20 +1739,71 @@ class Game {
  }
  emit(type,data={}){this.events.push({type,...data});}
  drain(){return this.events.splice(0);}
- get alive(){return this.crew.filter(c=>c.alive);}
+ becomeGhost(c){
+  c.alive=false;c.ghost=true;c.path=[];c.wait=0;c.inVent=false;c.shieldUntil=0;c.cameraUntil=0;
+  this.endShift(c,false);this.eliminatePet(c);
+  if(!c.imp&&this.guardianId==null){
+   this.guardianId=c.id;c.role='guardian';c.protectReadyAt=this.time;
+   if(c===this.player)this.role='guardian';
+  }
+ }
+ protect(c,target){
+  if(this.phase!=='playing'||c.role!=='guardian'||!c.ghost||c.left||this.time<(c.protectReadyAt||0))return false;
+  if(!target?.alive||target.inVent||target.left||dist(c,target)>ROLE_TIMING.protectRange)return false;
+  target.shieldUntil=this.time+ROLE_TIMING.shield;c.protectReadyAt=this.time+ROLE_TIMING.protectCooldown;return true;
+ }
+ breakShield(target){
+  if(!(target.shieldUntil>this.time))return false;
+  target.shieldUntil=0;target.shieldBreakAt=this.time;return true;
+ }
+ shift(c,target){
+  if(this.phase!=='playing'||c.role!=='shapeshifter'||!c.alive||c.left||c.inVent||c.disguise)return false;
+  if(this.time<(c.shiftReadyAt||0)||this.morphProgress(c)!==null||!target?.alive||target.left||target===c)return false;
+  const {name,color,hat,accessory}=target;
+  c.disguise={name,color,hat,accessory};c.disguiseId='echo-'+(this.morphSerial=(this.morphSerial||0)+1);
+  c.shiftUntil=this.time+ROLE_TIMING.shift;c.morphAt=this.time;c.path=[];return true;
+ }
+ endShift(c,animate=true){
+  if(!c.disguise)return false;
+  c.disguise=null;c.disguiseId=null;c.shiftUntil=0;c.shiftReadyAt=this.time+ROLE_TIMING.shiftCooldown;c.morphAt=animate?this.time:null;c.path=[];return true;
+ }
+ morphProgress(c){return c.morphAt!=null&&this.time-c.morphAt<ROLE_TIMING.morph?(this.time-c.morphAt)/ROLE_TIMING.morph:null;}
+ updateRole(c){if(c.disguise&&this.time>=c.shiftUntil)this.endShift(c,!c.inVent);}
+ clearRoleEffects(){for(const c of this.crew){this.endShift(c,false);c.morphAt=null;c.shieldUntil=0;c.shieldBreakAt=null;}}
+ stepGhost(c,dt){
+  if(c.wait>0){c.wait-=dt;return;}
+  if(!c.path.length){
+   const task=!c.imp&&c.taskOrder?.find(t=>!c.completedTasks.has(t.id));
+   const room=this.randomRoom();c.path=[task&&dist(c,task)>40?task:{x:room.x+room.w*(.2+this.random()*.6),y:room.y+room.h*(.2+this.random()*.6)}];
+  }
+  this.follow(c,c.profile.speed,dt);
+ }
+ get alive(){return this.crew.filter(c=>c.alive&&!c.left);}
  get completed(){return this.tasks.filter(t=>t.done).length;}
- get isImpostor(){return this.role==='impostor';}
+ get isImpostor(){return isImpostorRole(this.role);}
  get isCrew(){return !this.isImpostor;}
  get botKillCooldown(){const bots=this.crew.filter(c=>c.id!==0&&c.imp&&c.alive);return bots.length?Math.min(...bots.map(c=>c.killCooldown??30)):this._botCooldownFallback??30;}
  set botKillCooldown(value){this._botCooldownFallback=value;for(const c of this.crew||[])if(c.id!==0&&c.imp)c.killCooldown=value;}
  get introStage(){return this.phase!=='intro'?'done':this.introElapsed<3?'black':'reveal';}
  get canVent(){return this.isImpostor||this.role==='engineer';}
- get visionRadius(){return this.player.ghost?280:this.role==='impostor'?320:this.lights?54:270;}
+ get visionRadius(){return this.player.ghost?280:this.isImpostor?320:this.lights?54:270;}
  get repairTargets(){const s=this.sabotageState;return s?this.map.systems[s.kind].terminals.filter(t=>!s.repaired.has(t.id)):[];}
  get repairTarget(){return [...this.repairTargets].sort((a,b)=>dist(a,this.player)-dist(b,this.player))[0];}
- goTo(x,y){if(this.player.inVent){this.emit('toast',{message:'Exit the vent before walking.'});return false;}if(!this.walkable(x,y,2))return false;this.player.path=this.pathfind(this.player,{x,y});this.autoTarget={x,y};return !!this.player.path.length;}
+ goTo(x,y){
+  if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+  const player=this.player;
+  if(player.inVent){this.emit('toast',{message:'Exit the vent before walking.'});return false;}
+  if(player.ghost){
+   if(x<30||y<30||x>this.map.world.w-30||y>this.map.world.h-30)return false;
+   player.path=[{x,y}];
+  }else{
+   if(!this.walkable(x,y,2))return false;
+   player.path=this.pathfind(player,{x,y});
+  }
+  this.autoTarget={x,y};return !!player.path.length;
+ }
  move(c,dx,dy){
-  if(c.inVent)return;
+  if(c.inVent||c.morphAt!=null&&this.time-c.morphAt<ROLE_TIMING.morph)return;
   if(c.ghost){c.x=Math.max(30,Math.min(this.map.world.w-30,c.x+dx));c.y=Math.max(30,Math.min(this.map.world.h-30,c.y+dy));}
   else{if(this.walkable(c.x+dx,c.y))c.x+=dx;if(this.walkable(c.x,c.y+dy))c.y+=dy;}
   if(Math.abs(dx)>.1)c.dir=dx>0?1:-1;c.steps+=Math.hypot(dx,dy)*.13;
@@ -1717,12 +1824,20 @@ class Game {
   else this.vitalsBattery=Math.min(10,this.vitalsBattery+dt*.35);
   if(this.sabotageState?.remaining!=null){this.sabotageState.remaining-=dt;if(this.sabotageState.remaining<=0){this.finish('impostor',this.sabotageState.kind==='reactor'?'The reactor melted down.':'The ship ran out of oxygen.');return;}}
   if(!this.sabotageState)this.botSabotageCooldown-=dt;
+  for(const c of this.crew)this.updateRole(c);
   const p=this.player;if(!this.camerasOpen){if(input.x||input.y){p.path=[];this.autoTarget=null;const n=Math.max(1,Math.hypot(input.x,input.y));this.move(p,input.x/n*this.settings.speed*dt,input.y/n*this.settings.speed*dt);}else this.follow(p,this.settings.speed,dt);}
   for(const c of this.crew.slice(1)){
    if(c.imp)c.killCooldown-=dt;
    c.ventCooldown=Math.max(0,c.ventCooldown-dt);
-   if(!c.alive){if(!c.imp&&c.completedTasks.size<c.taskOrder.length){c.ghostWork+=dt;if(c.ghostWork>16){c.ghostWork=0;const next=c.taskOrder.find(t=>!c.completedTasks.has(t.id));if(next)c.completedTasks.add(next.id);}}continue;}
+   if(!c.alive){
+    if(c.ghost)this.stepGhost(c,dt);
+    if(!c.imp&&c.completedTasks.size<c.taskOrder.length){c.ghostWork+=dt;if(c.ghostWork>16){c.ghostWork=0;const next=c.taskOrder.find(t=>!c.completedTasks.has(t.id));if(next)c.completedTasks.add(next.id);}}
+    if(c.role==='guardian'&&c.protectReadyAt<=this.time&&p.alive&&!p.imp&&dist(c,p)<100)this.protect(c,p);
+    continue;
+   }
    this.updateVent(c,dt);if(c.inVent)continue;
+   this.tryBotShift(c);
+   if(this.morphProgress(c)!==null)continue;
    this.observeBot(c);
    if(this.updateBotCameras(c))continue;
    const repairing=this.botRepair(c,dt);
@@ -1730,7 +1845,7 @@ class Game {
    if(c.imp&&c.killCooldown<=0){
     let victims=this.alive.filter(v=>!v.imp&&!v.inVent&&dist(c,v)<68&&this.lineOfSight(c,v));
     let target=victims.sort((a,b)=>dist(c,a)-dist(c,b))[0];
-    if(target){const watchers=this.alive.filter(w=>!w.imp&&!w.inVent&&w.id!==target.id&&dist(w,c)<(this.lights?65:190)&&this.lineOfSight(w,c));if(watchers.length<Math.max(1,Math.round((1-c.profile.caution)*3))||c.killCooldown< -30){this.eliminate(c,target);c.killCooldown=22+this.random()*18;c.huntAt=this.time+4+this.random()*8;if(this.random()<.55)this.botVent(c);}}
+    if(target){const watchers=this.alive.filter(w=>!w.imp&&!w.inVent&&w.id!==target.id&&dist(w,c)<(this.lights?65:190)&&this.lineOfSight(w,c));if(watchers.length<Math.max(1,Math.round((1-c.profile.caution)*3))||c.killCooldown< -30){const killed=this.eliminate(c,target);c.killCooldown=killed?22+this.random()*18:ROLE_TIMING.blockedKillCooldown;c.huntAt=this.time+4+this.random()*8;if(killed&&this.random()<.55)this.botVent(c);}}
     else if(c.killCooldown< -3&&this.time>=c.huntAt){const candidates=[...c.memory.values()].filter(m=>!this.crew[m.id].imp&&this.crew[m.id].alive&&this.time-m.at<12);const t=shuffled(candidates,this.random).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(t){c.path=this.pathfind(c,t);c.goalTask=null;c.workingTask=null;c.wait=0;}c.huntAt=this.time+2+this.random()*4;}
    }
    if(!c.inVent&&this.time-this.lastMeeting>15){
@@ -1765,8 +1880,15 @@ class Game {
    c.path=this.pathfind(c,target);c.goalTask=null;
   }
  }
+ tryBotShift(c){
+  if(c.role!=='shapeshifter'||c.disguise||this.time<(c.shiftReadyAt||12)||this.time<(c.nextShiftCheck||0))return;
+  c.nextShiftCheck=this.time+4+this.random()*6;
+  const crew=this.alive.filter(a=>!a.imp&&!a.inVent);
+  if(crew.some(a=>dist(c,a)<195&&this.lineOfSight(c,a)))return;
+  const target=crew[Math.floor(this.random()*crew.length)];if(target)this.shift(c,target);
+ }
  botVent(c,target=null){
-  if(!c.alive||!['engineer','impostor'].includes(c.role)||c.ventCooldown>0)return false;
+  if(!c.alive||!(c.role==='engineer'||c.imp)||c.ventCooldown>0)return false;
   const entry=this.map.vents.find(v=>dist(v,c)<78);if(!entry||c.inVent)return false;
   const exits=this.map.vents.filter(v=>v!==entry),exit=target?exits.sort((a,b)=>dist(a,target)-dist(b,target))[0]:exits[Math.floor(this.random()*exits.length)];
   this.enterActorVent(c,this.map.vents.indexOf(entry));c.ventDestination=this.map.vents.indexOf(exit);c.ventTravel=.65;c.ventExitIn=1.5+this.random()*3;c.resumeTarget=target?{...target}:null;c.workingTask=null;if(!target)c.goalTask=null;return true;
@@ -1775,7 +1897,7 @@ class Game {
   for(const c of this.alive.filter(c=>!c.inVent&&c.id!==subject.id&&dist(c,position)<(this.lights?60:160)&&this.lineOfSight(c,position)))this.logs.push({observer:c.id,suspect:subject.id,at:this.time,room:this.roomAt(position.x,position.y)?.name||'the hallway',certain:false,action:'vent'});
  }
  enterActorVent(c,index){
-  const v=this.map.vents[index];if(!v||!c.alive||c.inVent||!['engineer','impostor'].includes(c.role)||dist(c,v)>80)return false;
+  const v=this.map.vents[index];if(!v||!c.alive||c.inVent||!(c.role==='engineer'||isImpostorRole(c.role))||dist(c,v)>80||this.morphProgress(c)!==null)return false;
   this.recordVent(c,v);c.inVent=true;c.ventIndex=index;c.ventDestination=index;c.ventTravel=0;c.ventExitIn=2;c.ventRemaining=c.role==='engineer'?8:Infinity;c.x=v.x;c.y=v.y;c.path=[];c.cameraUntil=0;c.bodyInterest=null;
   if(c.id===0){this.closeCameras();this.closeVitals();this.autoTarget=null;this.emit('enteredVent');}return true;
  }
@@ -1799,7 +1921,8 @@ class Game {
  observeBot(c){
   if(this.time<c.observeAt)return;c.observeAt=this.time+.35+this.random()*.55;
   for(const target of this.alive)if(target.id!==c.id&&!target.inVent&&dist(c,target)<(this.lights&&!c.imp?75:310)&&this.lineOfSight(c,target))c.memory.set(target.id,{id:target.id,x:target.x,y:target.y,at:this.time});
-  for(const [id,m] of c.memory)if(this.time-m.at>25||!this.crew[id].alive)c.memory.delete(id);
+  const livingIds=new Set(this.alive.map(a=>a.id));
+  for(const [id,m] of c.memory)if(this.time-m.at>25||!livingIds.has(id))c.memory.delete(id);
  }
  cameraCovers(camera,point){return !!camera&&!point.inVent&&Math.abs(camera.x-point.x)<=camera.width/2&&Math.abs(camera.y-point.y)<=camera.height/2&&this.lineOfSight(camera,point);}
  isCameraViewer(c){return this.phase==='playing'&&!!c?.alive&&!c.inVent&&this.sabotageState?.kind!=='comms'&&dist(c,this.map.cameraConsole)<=95&&(c.id===0?this.camerasOpen:c.cameraUntil>this.time)&&this.lineOfSight(c,this.map.cameraConsole);}
@@ -1812,13 +1935,13 @@ class Game {
  closeCameras(notify=false){const wasOpen=this.camerasOpen;this.camerasOpen=false;if(wasOpen&&notify)this.emit('camerasClosed');}
  getCameraFeed(index,viewerId=0){
   if(!Number.isInteger(index)||!this.map.cameras[index])return null;const camera=this.map.cameras[index],online=this.isCameraViewer(this.crew[viewerId]);
-  return {camera,online,actors:online?this.alive.filter(c=>!c.inVent&&this.cameraCovers(camera,c)).map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,x:c.x,y:c.y,dir:c.dir,steps:c.steps,alive:true,imp:this.isImpostor&&c.imp})):[],pets:online?this.getPets().filter(p=>this.cameraCovers(camera,p)):[],bodies:online?this.bodies.filter(b=>!this.reported.has(b.id)&&this.cameraCovers(camera,b)).map(({id,x,y,color,at})=>({id,x,y,color,at})):[],incident:online&&this.cameraIncidents.some(i=>i.cameraId===index&&this.time-i.at<1.1)};
+  return {camera,online,actors:online?this.alive.filter(c=>!c.inVent&&this.cameraCovers(camera,c)).map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,x:c.x,y:c.y,dir:c.dir,steps:c.steps,alive:true,imp:this.isImpostor&&c.imp,disguise:c.disguise,morphAt:c.morphAt,shieldBreakAt:c.shieldBreakAt})):[],pets:online?this.getPets().filter(p=>this.cameraCovers(camera,p)):[],bodies:online?this.bodies.filter(b=>!this.reported.has(b.id)&&this.cameraCovers(camera,b)).map(({id,x,y,color,at})=>({id,x,y,color,at})):[],incident:online&&this.cameraIncidents.some(i=>i.cameraId===index&&this.time-i.at<1.1)};
  }
  updateBotCameras(c){
   if(c.cameraUntil<=this.time)return false;
   if(!this.isCameraViewer(c)){c.cameraUntil=0;return false;}
   for(const target of this.alive)if(target.id!==c.id&&!target.inVent&&this.map.cameras.some(cam=>this.cameraCovers(cam,target)))c.memory.set(target.id,{id:target.id,x:target.x,y:target.y,at:this.time});
-  if(c.imp&&c.killCooldown<=0&&[...c.memory.values()].some(m=>!this.crew[m.id].imp&&this.time-m.at<1)){c.cameraUntil=0;c.huntAt=0;return false;}
+  if(c.imp&&c.killCooldown<=0&&[...c.memory.values()].some(m=>this.alive.some(a=>a.id===m.id&&!a.imp)&&this.time-m.at<1)){c.cameraUntil=0;c.huntAt=0;return false;}
   const body=!c.imp&&this.bodies.find(b=>!this.reported.has(b.id)&&this.map.cameras.some(cam=>this.cameraCovers(cam,b)));
   if(body){c.cameraUntil=0;c.path=this.pathfind(c,body);c.goalTask=null;c.workingTask=null;c.wait=0;return false;}
   return true;
@@ -1832,21 +1955,27 @@ class Game {
  closeVitals(notify=false){const wasOpen=this.vitalsOpen;this.vitalsOpen=false;if(wasOpen&&notify)this.emit('vitalsClosed');}
  getVitals(){if(!this.vitalsOpen||this.role!=='scientist'||this.sabotageState?.kind==='comms')return [];return this.crew.map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,alive:c.alive,bpm:c.alive?Math.round(68+c.id*2+Math.sin(this.time*1.6+c.id)*5):0}));}
  eliminate(killer,victim){
-  if(!victim?.alive||victim.inVent||killer.inVent||killer.imp&&victim.imp)return false;victim.alive=false;victim.path=[];victim.ghost=victim.id===0;this.eliminatePet(victim);
+  if(!victim?.alive||victim.inVent||killer.inVent||killer.imp&&victim.imp||this.morphProgress(killer)!==null)return false;
+  if(this.breakShield(victim)){
+   if(killer===this.player)this.emit('toast',{message:'A Guardian Angel blocked your kill.'});
+   if(victim===this.player)this.emit('toast',{message:'A Guardian Angel saved you!'});
+   return false;
+  }
+  this.becomeGhost(victim);
   this.bodies.push({id:victim.id,x:victim.x,y:victim.y,color:victim.color,at:this.time,killer:killer.id});
   const witnessRange=this.lights?65:210;
   const witnesses=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,victim)<witnessRange&&this.lineOfSight(c,victim));
-  for(const w of witnesses){w.witness=killer.id;w.urgentReportAt=this.time+.35+this.random()*.7;killer.suspicion+=4;this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(victim.x,victim.y)?.name||'the hallway',certain:true});}
+  for(const w of witnesses){w.urgentReportAt=this.time+.35+this.random()*.7;if(killer.disguise)continue;w.witness=killer.id;killer.suspicion+=4;this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(victim.x,victim.y)?.name||'the hallway',certain:true});}
   for(const camera of this.map.cameras)if(this.cameraCovers(camera,killer)&&this.cameraCovers(camera,victim)){
    this.cameraIncidents.push({cameraId:camera.id,at:this.time});
-   for(const w of this.alive.filter(w=>!w.imp&&this.isCameraViewer(w)&&!witnesses.includes(w)))this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:camera.name,certain:true,via:'camera',cameraId:camera.id});
+   if(!killer.disguise)for(const w of this.alive.filter(w=>!w.imp&&this.isCameraViewer(w)&&!witnesses.includes(w)))this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:camera.name,certain:true,via:'camera',cameraId:camera.id});
   }
   this.cameraIncidents=this.cameraIncidents.filter(i=>this.time-i.at<5);
-  if(!witnesses.length){const nearby=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,killer)<350&&this.lineOfSight(c,killer));for(const w of nearby)this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(killer.x,killer.y)?.name||'the hallway',certain:false});}
-  if(killer.id===0||victim.id===0){const sprite=c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,pet:c.pet});this.emit('killAnimation',{killer:sprite(killer),victim:sprite(victim),style:['knife','chomp','blaster'][Math.floor(this.random()*3)]});}
+  if(!killer.disguise&&!witnesses.length){const nearby=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,killer)<350&&this.lineOfSight(c,killer));for(const w of nearby)this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(killer.x,killer.y)?.name||'the hallway',certain:false});}
+  if(killer.id===0||victim.id===0){const sprite=c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,pet:c.pet});this.emit('killAnimation',{killer:killer.id!==0&&killer.disguise?{...sprite(killer),...killer.disguise,pet:'none'}:sprite(killer),victim:sprite(victim),style:['knife','chomp','blaster'][Math.floor(this.random()*3)]});}
   if(killer.id===0){this.kills++;this.emit('toast',{message:`${victim.name} eliminated. Leave before someone finds the body.`});}
   if(victim.id===0)this.emit('death');
-  this.checkWin();
+  this.checkWin();return true;
  }
  nearestTask(){return this.tasks.filter(t=>!t.done).sort((a,b)=>dist(this.player,a)-dist(this.player,b))[0];}
  canUse(){
@@ -1877,6 +2006,7 @@ class Game {
  }
  callMeeting(reporter,body){
   if(this.phase!=='playing')return false;this.closeVitals();this.closeCameras();
+  this.clearRoleEffects();
   for(const c of this.crew){if(c.inVent&&c.role==='engineer'){if(c.id===0)this.ventCooldown=25;else c.ventCooldown=25;}c.inVent=false;c.ventTravel=0;c.cameraUntil=0;c.goalActivity=null;if(c.companion&&!c.companion.alive)c.companion.deathAt=-Infinity;}
   this.phase='meeting';this.meetings++;this.player.path=[];
   if(body)this.reported.add(body.id);
@@ -1923,7 +2053,7 @@ class Game {
   }
   const sorted=Object.entries(votes).sort((a,b)=>b[1]-a[1]);
   let ejected=null,reason='No one was ejected. (Skipped)';
-  if(sorted.length&&Number(sorted[0][0])>=0){if(sorted[1]&&sorted[0][1]===sorted[1][1])reason='No one was ejected. (Tie)';else{ejected=Number(sorted[0][0]);const c=this.crew[ejected];c.alive=false;c.ghost=c.id===0;c.path=[];this.eliminatePet(c);reason=`${c.name} was ${c.imp?'an Impostor.':'not an Impostor.'}`;}}
+  if(sorted.length&&Number(sorted[0][0])>=0){if(sorted[1]&&sorted[0][1]===sorted[1][1])reason='No one was ejected. (Tie)';else{ejected=Number(sorted[0][0]);const c=this.crew[ejected];this.becomeGhost(c);reason=`${c.name} was ${c.imp?'an Impostor.':'not an Impostor.'}`;}}
   this.meeting.result={ejected,reason,votes};this.emit('voteResult',{...this.meeting.result});return this.meeting.result;
  }
  continueMeeting(){
@@ -1934,7 +2064,7 @@ class Game {
   this.meeting=null;this.checkWin();
  }
  killTarget(){return this.player.inVent?undefined:this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,this.player)<82&&this.lineOfSight(c,this.player)).sort((a,b)=>dist(a,this.player)-dist(b,this.player))[0];}
- kill(){if(this.phase!=='playing'||this.role!=='impostor'||!this.player.alive||this.player.inVent||this.killCooldown>0)return false;const t=this.killTarget();if(!t)return false;this.eliminate(this.player,t);this.killCooldown=22;return true;}
+ kill(){if(this.phase!=='playing'||!this.isImpostor||!this.player.alive||this.player.inVent||this.killCooldown>0||this.morphProgress(this.player)!==null)return false;const t=this.killTarget();if(!t)return false;const killed=this.eliminate(this.player,t);this.killCooldown=killed?22:ROLE_TIMING.blockedKillCooldown;return killed;}
  vent(){
   if(this.phase!=='playing'||!this.canVent||!this.player.alive)return false;
   if(this.player.inVent)return this.exitActorVent(this.player);
@@ -1942,7 +2072,7 @@ class Game {
   const i=this.map.vents.findIndex(v=>dist(v,this.player)<80);if(i<0){this.emit('toast',{message:'Get closer to a floor vent to use it.'});return false;}
   return this.enterActorVent(this.player,i);
  }
- sabotage(kind='lights'){if(this.phase!=='playing'||this.role!=='impostor'||!this.player.alive||this.sabotageCooldown>0||this.sabotageState)return false;return this.activateSabotage(kind);}
+ sabotage(kind='lights'){if(this.phase!=='playing'||!this.isImpostor||!this.player.alive||this.sabotageCooldown>0||this.sabotageState)return false;return this.activateSabotage(kind);}
  activateSabotage(kind){
   const system=this.map.systems[kind];if(!system||this.sabotageState||this.phase!=='playing')return false;
   this.sabotageState={kind,remaining:system.duration??null,repaired:new Set(),switches:[false,true,false,false,true],codes:Object.fromEntries(system.terminals.map(t=>[t.id,String(10000+Math.floor(this.random()*90000))])),frequency:62,botProgress:{}};
@@ -1967,8 +2097,8 @@ class Game {
   this.emit('repair',{done});this.emit('toast',{message:done?'Systems restored. Nice work, crew.':'Panel restored. Head to the other marked panel.'});
  }
  botRepair(c,dt){
-  if(!this.isImpostor||c.imp||!this.sabotageState||!c.profile.repair&&this.alive.length>3)return false;
-  const targets=this.repairTargets,t=targets[c.id%targets.length];if(!t)return false;
+  if(!(this.network||this.isImpostor)||c.imp||!this.sabotageState||!c.profile.repair&&this.alive.length>3)return false;
+  const targets=this.repairTargets,t=targets[Math.abs(c.id)%targets.length];if(!t)return false;
   if(c.repairTarget!==t.id){c.repairTarget=t.id;c.path=this.pathfind(c,t);c.wait=0;c.goalTask=null;c.workingTask=null;}
   if(dist(c,t)>48){if(!c.path.length)c.path=this.pathfind(c,t);this.follow(c,110,dt);}
   else{const s=this.sabotageState;s.botProgress[t.id]=(s.botProgress[t.id]||0)+dt;if(s.botProgress[t.id]>=9)this.completeRepair(t.id);}
@@ -1991,6 +2121,17 @@ function teamRevealMarkup(player,partners=[]){
  const allies=partners.filter(c=>c.id!==player.id).slice(0,2);
  return `<div class="reveal-lineup ${allies.length?'has-teammates':''}" role="group" aria-label="${allies.length?'Your impostor team':'Your character'}">${allies.map((c,i)=>`<div class="reveal-ally ${i?'ally-left':'ally-right'}">${crewSVG(c.color,91,c.hat,c.accessory)}<strong data-i18n-skip>${safe(c.name)}</strong><small>TEAMMATE</small></div>`).join('')}<div class="reveal-main">${crewSVG(player.color,118,player.hat,player.accessory)}<strong>YOU</strong></div>${player.pet&&player.pet!=='none'?`<span class="lineup-pet">${petSVG(player.pet,55,player.color)}</span>`:''}</div>`;
 }
+function deckPlanSVG(map,player=null,markers='',className='ship-diagram'){
+ const {w,h}=map.world,aurora=map.theme==='aurora',outline=aurora?'#7fcfcb':'#7894ad';
+ const plate=(r,radius,fill,stroke,width)=>`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${width}"/>`;
+ const halls=map.halls.map(r=>{const wide=r.w>r.h;return plate(r,9,aurora?'#234e60':'#24384d',outline,8)+`<path d="M ${r.x+(wide?0:r.w/2)} ${r.y+(wide?r.h/2:0)} ${wide?'h '+r.w:'v '+r.h}" stroke="${outline}" stroke-width="3" stroke-dasharray="20 14" opacity=".48"/>`;}).join('');
+ const rooms=map.rooms.map((r,index)=>{
+  const panel={x:r.x+15,y:r.y+15,w:r.w-30,h:r.h-30},x=r.x+r.w/2,y=r.y+r.h/2;
+  return plate(r,24,r.tint,outline,8)+plate(panel,16,'none',outline,2)+`<path d="M ${r.x+24} ${r.y+31} h 38 M ${r.x+r.w-24} ${r.y+r.h-31} h -38" stroke="${outline}" stroke-width="6" stroke-linecap="round"/><text x="${x}" y="${y-15}" text-anchor="middle" fill="${outline}" font-size="${w/120}" opacity=".8">${String(index+1).padStart(2,'0')}</text>${player?`<text x="${x}" y="${y+23}" text-anchor="middle" fill="#edf8fa" stroke="#102638" stroke-width="4" paint-order="stroke" font-size="${w/72}" font-weight="600">${r.name}</text>`:''}`;
+ }).join('');
+ const locator=player?`<circle cx="${player.x}" cy="${player.y}" r="${w/100}" fill="${player.color}" stroke="#fff" stroke-width="6"/><text x="${player.x}" y="${player.y-w/65}" text-anchor="middle" fill="#fff" stroke="#102638" stroke-width="6" paint-order="stroke" font-size="${w/75}">YOU</text>`:'';
+ return `<svg class="${className}" viewBox="0 0 ${w} ${h}" ${player?'aria-label="Ship layout"':'aria-hidden="true"'} font-family="system-ui, sans-serif"><rect width="${w}" height="${h}" rx="30" fill="${aurora?'#102f3b':'#101f33'}"/>${halls}${rooms}${markers}${locator}</svg>`;
+}
 class Renderer {
  camera=null;
  cameraIndex=null;
@@ -2007,7 +2148,9 @@ class Renderer {
  draw(dt){
   const {world:WORLD,rooms:allRooms,halls:allHalls,vents:VENTS}=this.game.map,isFeed=this.cameraIndex!==null,feed=isFeed?this.game.getCameraFeed(this.cameraIndex):null;
   this.drawDt=dt;this.clock+=dt;const c=this.ctx;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.w,this.h);
-  const bg=c.createRadialGradient(this.w*.5,this.h*.45,0,this.w*.5,this.h*.45,this.w*.75);bg.addColorStop(0,this.game.map.theme==='aurora'?'#173941':'#142237');bg.addColorStop(1,'#0a1120');c.fillStyle=bg;c.fillRect(0,0,this.w,this.h);
+  const aurora=this.game.map.theme==='aurora';
+  const bg=c.createRadialGradient(this.w*.5,this.h*.45,0,this.w*.5,this.h*.45,this.w*.75);bg.addColorStop(0,aurora?'#163d4b':'#142237');bg.addColorStop(1,'#0a1120');c.fillStyle=bg;c.fillRect(0,0,this.w,this.h);
+  if(aurora)this.auroraSky();
   for(const s of this.stars){c.globalAlpha=s.a;this.circle(s.x*this.w,s.y*this.h,s.r,'#9bc4d9');}c.globalAlpha=1;
   c.save();c.globalAlpha=.12;this.circle(-90,this.h+155,290,'#213f60','#5c7d9b',2);this.circle(-90,this.h+155,310,null,'#7097ab',1);c.restore();
   c.save();c.strokeStyle='#7d9cba0a';c.lineWidth=1;for(let x=20;x<this.w;x+=35)this.line(x,0,x,this.h,'#7d9cba08',1);for(let y=20;y<this.h;y+=35)this.line(0,y,this.w,y,'#7d9cba08',1);c.restore();
@@ -2022,11 +2165,12 @@ class Renderer {
   const inFrame=r=>r.x+r.w>cx-this.w/(2*this.scale)-30&&r.x<cx+this.w/(2*this.scale)+30&&r.y+r.h>cy-this.h/(2*this.scale)-30&&r.y<cy+this.h/(2*this.scale)+30;
   const ROOMS=allRooms.filter(inFrame),HALLS=allHalls.filter(inFrame);
   c.save();c.translate(this.offset.x,this.offset.y);c.scale(this.scale,this.scale);
+  if(aurora)for(const room of ROOMS)this.auroraHull(room);
   // Hull plates join the rooms into one continuous ship.
   c.save();c.shadowColor='#0008';c.shadowBlur=30;c.shadowOffsetY=20;
-  for(const h of HALLS)this.rr(h.x-10,h.y-10,h.w+20,h.h+20,14,'#1e2c40','#060e1b',9);
-  for(const r of ROOMS)this.rr(r.x-12,r.y-12,r.w+24,r.h+24,24,'#243449','#070f1c',10);c.restore();
-  for(const h of HALLS){this.rr(h.x,h.y,h.w,h.h,7,'#2b3949','#63717c',3);const vertical=h.h>h.w;c.save();c.globalAlpha=.25;for(let p=20;p<(vertical?h.h:h.w);p+=30){if(vertical)this.line(h.x+3,h.y+p,h.x+h.w-3,h.y+p,'#92a1aa',1);else this.line(h.x+p,h.y+3,h.x+p,h.y+h.h-3,'#92a1aa',1);}c.restore();}
+  for(const h of HALLS)this.rr(h.x-10,h.y-10,h.w+20,h.h+20,14,aurora?'#426c79':'#1e2c40','#060e1b',9);
+  for(const r of ROOMS)this.rr(r.x-12,r.y-12,r.w+24,r.h+24,24,aurora?'#7596a0':'#243449','#070f1c',10);c.restore();
+  for(const h of HALLS)this.hall(h,aurora);
   for(const r of ROOMS)this.room(r);
   for(const r of ROOMS)for(const h of HALLS)this.doors(r,h);
   for(const r of ROOMS)this.props(r);
@@ -2046,7 +2190,7 @@ class Renderer {
    this.circle(terminal.x,terminal.y-30,13,'#e96368','#512e3b',2);this.text('!',terminal.x,terminal.y-29,17,'#fff4db');
   }
   for(const b of isFeed?feed?.bodies||[]:this.game.bodies)if(!this.game.reported.has(b.id))this.body(b);
-  const people=isFeed?feed?.actors||[]:this.game.crew.filter(p=>!p.inVent&&(p.alive||p.ghost)),pets=isFeed?feed?.pets||[]:this.game.getPets();
+  const people=isFeed?feed?.actors||[]:this.game.crew.filter(p=>!p.inVent&&!p.left&&(p.alive||p.ghost&&this.game.player.ghost)),pets=isFeed?feed?.pets||[]:this.game.getPets();
   const actors=[...people.map(actor=>({actor,kind:'crew'})),...pets.map(actor=>({actor,kind:'pet'}))].sort((a,b)=>a.actor.y-b.actor.y);
   for(const {actor,kind} of actors)if(kind==='pet')this.pet(actor);else this.crew(actor,playing);
   if(!isFeed&&this.game.autoTarget&&this.game.player.path.length){const p=this.game.autoTarget;this.circle(p.x,p.y,9,null,'#83dccd77',2);this.line(p.x-14,p.y,p.x+14,p.y,'#83dccd66',1);this.line(p.x,p.y-14,p.x,p.y+14,'#83dccd66',1);}
@@ -2085,19 +2229,54 @@ class Renderer {
   const width=Math.max(148,Math.min(215,label.length*6.2+40)),lx=Math.max(width/2+8,Math.min(this.w-width/2-8,ax)),ly=Math.max(44,Math.min(this.h-35,ay+44));
   this.rr(lx-width/2,ly-14,width,29,7,'#101e2df5',color,2);this.text(label,lx-11,ly,10,'#fff2d8');this.text(meters,lx+width/2-19,ly,9,color);
  }
+ auroraSky(){
+  const c=this.ctx,w=this.w,h=this.h;
+  const planet=c.createRadialGradient(w*.8,h*1.08,0,w*.9,h*1.18,w*.73);
+  planet.addColorStop(0,'#557ca6');planet.addColorStop(.64,'#1d425f');planet.addColorStop(1,'#142a45');
+  c.beginPath();c.ellipse(w*.88,h*1.56,w*.8,h*.83,-.13,0,TAU);c.fillStyle=planet;c.fill();c.strokeStyle='#74bbc874';c.lineWidth=2;c.stroke();
+  const glow=c.createRadialGradient(w*.53,h*.16,0,w*.53,h*.16,w*.68);glow.addColorStop(0,'#54f2bf80');glow.addColorStop(.55,'#61d8d048');glow.addColorStop(1,'#9c83f800');
+  c.beginPath();c.moveTo(-40,h*.08);c.bezierCurveTo(w*.28,h*.39,w*.56,-h*.16,w+40,h*.19);c.lineTo(w+40,h*.52);c.bezierCurveTo(w*.6,h*.13,w*.33,h*.68,-40,h*.31);c.closePath();c.fillStyle=glow;c.fill();
+  for(let i=0;i<4;i++){c.beginPath();c.moveTo(-40,h*(.13+i*.036));c.bezierCurveTo(w*.28,h*(.49+i*.028),w*.59,h*(-.14+i*.035),w+40,h*(.21+i*.048));c.strokeStyle=i%2?'#7eeec23b':'#aa8cf638';c.lineWidth=1+i; c.stroke();}
+ }
+ auroraHull(room){
+  const right=room.id==='navigation'||room.id==='weapons';
+  if(!right&&room.id!=='upper'&&room.id!=='reactor')return;
+  const c=this.ctx,x=right?room.x+room.w:room.x,y=room.y+room.h*.51;
+  c.save();c.translate(x,y);c.scale(right?1:-1,1);
+  this.line(0,-26,76,-26,'#8ba8b1',7);this.line(0,26,76,26,'#8ba8b1',7);
+  this.rr(63,-66,55,132,8,'#162f4d','#83a7b4',4);
+  for(let row=0;row<5;row++)for(let column=0;column<2;column++)this.rr(69+column*22,-59+row*24,18,20,2,row%2?'#397089':'#325c82','#547f9b',1.2);
+  this.line(63,0,118,0,'#9dd8d5',2);
+  this.circle(45,-26,4,'#aaf2d8');this.circle(45,26,4,'#aaf2d8');c.restore();
+ }
+ hall(h,aurora){
+  const vertical=h.h>h.w,length=vertical?h.h:h.w,wide=vertical?h.w:h.h;
+  this.rr(h.x,h.y,h.w,h.h,7,aurora?'#254554':'#2b3949',aurora?'#89a8b3':'#63717c',3);
+  const rail=(p,a,b,color,width)=>vertical?this.line(h.x+a,h.y+p,h.x+b,h.y+p,color,width):this.line(h.x+p,h.y+a,h.x+p,h.y+b,color,width);
+  for(let p=24;p<length-10;p+=aurora?48:30)rail(p,4,wide-4,aurora?'#77a2aa44':'#92a1aa44',aurora?2:1);
+  if(aurora){
+   for(const p of [11,wide-11]){if(vertical)this.line(h.x+p,h.y+5,h.x+p,h.y+h.h-5,'#7ee2d494',2);else this.line(h.x+5,h.y+p,h.x+h.w-5,h.y+p,'#7ee2d494',2);}
+   for(let p=36;p<length-20;p+=84)rail(p,wide*.43,wide*.57,'#9de3d888',3);
+  }
+ }
  room(r){
-  const c=this.ctx;this.rr(r.x,r.y,r.w,r.h,15,r.tint,'#75818a',5);this.rr(r.x+7,r.y+7,r.w-14,r.h-14,10,null,'#121f2e',3);
+  const c=this.ctx,aurora=this.game.map.theme==='aurora',tile=aurora?44:34;
+  this.rr(r.x,r.y,r.w,r.h,15,r.tint,aurora?'#aac7cc':'#8995a2',5);
+  this.rr(r.x+7,r.y+7,r.w-14,r.h-14,10,null,aurora?'#234758':'#121f2e',3);
   c.save();c.beginPath();c.roundRect(r.x+10,r.y+10,r.w-20,r.h-20,8);c.clip();
-  for(let x=r.x+5;x<r.x+r.w;x+=34)this.line(x,r.y,x,r.y+r.h,'#111e2c50',1);
-  for(let y=r.y+5;y<r.y+r.h;y+=34)this.line(r.x,y,r.x+r.w,y,'#111e2c50',1);
-  c.fillStyle='#d6e0d503';for(let y=0;y<r.h;y+=34)for(let x=0;x<r.w;x+=34)if((x+y)%68===0)c.fillRect(r.x+x,r.y+y,34,34);
+  for(let x=r.x+5;x<r.x+r.w;x+=tile)this.line(x,r.y,x,r.y+r.h,'#101f2e53',1.3);
+  for(let y=r.y+5;y<r.y+r.h;y+=tile)this.line(r.x,y,r.x+r.w,y,'#101f2e53',1.3);
+  c.fillStyle=aurora?'#b4e5df12':'#d6e0d50a';for(let y=0;y<r.h;y+=tile)for(let x=0;x<r.w;x+=tile)if((x+y)%(tile*2)===0)c.fillRect(r.x+x+5,r.y+y+5,tile,tile);
+  this.line(r.x+10,r.y+14,r.x+r.w-10,r.y+14,aurora?'#a6ffe296':'#c6d7e046',2);
+  this.line(r.x+10,r.y+r.h-13,r.x+r.w-10,r.y+r.h-13,'#0f1c2c88',5);
   c.restore();
   // Hull rivets and illuminated corner fixtures.
   for(const [x,y] of [[r.x+13,r.y+14],[r.x+r.w-13,r.y+14],[r.x+13,r.y+r.h-14],[r.x+r.w-13,r.y+r.h-14]])this.circle(x,y,2.3,'#9aa6aa');
-  this.line(r.x+34,r.y-2,r.x+70,r.y-2,r.id==='reactor'?'#b79ee4':'#7ab3b5',3);
+  const indicator=r.id==='reactor'?'#c2a5f9':aurora?'#8aefca':'#8bbac3';
+  this.line(r.x+34,r.y-2,r.x+(aurora?94:70),r.y-2,indicator,3);
  }
  doors(r,h){
-  const fill='#2b3949';
+  const fill=this.game.map.theme==='aurora'?'#254554':'#2b3949';
   const vertical=(x)=>{if(h.x<x&&h.x+h.w>x){const y1=Math.max(r.y+15,h.y),y2=Math.min(r.y+r.h-15,h.y+h.h);if(y2-y1>10){this.line(x,y1+3,x,y2-3,fill,19);this.line(x-9,y1,x+9,y1,'#a7a08a',4);this.line(x-9,y2,x+9,y2,'#a7a08a',4);}}};
   const horizontal=(y)=>{if(h.y<y&&h.y+h.h>y){const x1=Math.max(r.x+15,h.x),x2=Math.min(r.x+r.w-15,h.x+h.w);if(x2-x1>10){this.line(x1+3,y,x2-3,y,fill,19);this.line(x1,y-9,x1,y+9,'#a7a08a',4);this.line(x2,y-9,x2,y+9,'#a7a08a',4);}}};
   vertical(r.x);vertical(r.x+r.w);horizontal(r.y);horizontal(r.y+r.h);
@@ -2110,8 +2289,68 @@ class Renderer {
  }
  props(r){
   const base=BASE_MAP.rooms.find(b=>b.id===r.id),c=this.ctx;if(!base)return;
+  if(this.game.map.theme==='aurora'&&this.auroraModule(r))return;
   c.save();c.translate(r.x,r.y);c.scale(r.w/base.w,r.h/base.h);c.translate(-base.x,-base.y);this.propsBase(base);c.restore();
   if(this.game.map.theme==='aurora')this.auroraDetails(r);
+ }
+ auroraModule(r){
+  const c=this.ctx,x=r.x+r.w/2,y=r.y+r.h*.46;
+  switch(r.id){
+   case 'cafeteria':{
+    this.rr(r.x+42,r.y+28,r.w-84,r.h-92,36,'#2c5662','#79a9aa',3);
+    this.rr(r.x+50,r.y+36,r.w-100,r.h-108,31,null,'#67cfc289',2);
+    for(const side of [-1,1]){
+     const px=x+side*r.w*.29;
+     this.rr(px-37,y-60,74,124,31,'#28514c','#8fc5aa',3);
+     for(let i=0;i<4;i++)this.gardenPlant(px+(i%2?10:-10),y-37+i*26,12);
+    }
+    const button=this.game.map.emergency;
+    this.circle(button.x,button.y,61,'#223d58','#a0bcc9',5);
+    this.circle(button.x,button.y,50,'#32667b','#7adccd',3);
+    this.circle(button.x,button.y,31,'#254754','#b9e7d5',2);
+    this.rr(button.x-18,button.y-16,36,32,6,'#4b4e61','#d9c1ad',2);
+    this.circle(button.x,button.y,10,'#ff837a','#672f44',3);
+    this.text('EMERGENCY',button.x,button.y+43,10,'#edf4e8');return true;
+   }
+   case 'o2':
+    for(let i=0;i<3;i++){
+     const px=x+(i-1)*96;
+     this.rr(px-40,r.y+42,80,r.h-105,26,'#294f46','#9bbca0',4);
+     this.rr(px-32,r.y+51,64,r.h-123,21,'#426c57','#579884',2);
+     for(let j=0;j<4;j++)this.gardenPlant(px+(j%2?9:-9),r.y+73+j*34,17);
+     this.circle(px,r.y+35,3,'#98f0c4');
+    }return true;
+   case 'weapons':{
+    this.rr(r.x+31,r.y+30,r.w-62,90,21,'#183c59','#afd3db',4);
+    for(let i=0;i<21;i++)this.circle(r.x+40+(i*73)%(r.w-80),r.y+41+(i*23)%66,i%6===0?2:1,'#c1e4eb');
+    c.beginPath();c.moveTo(r.x+40,r.y+91);c.bezierCurveTo(x-80,r.y+111,x+53,r.y+40,r.x+r.w-42,r.y+62);c.strokeStyle='#81e5c5';c.lineWidth=3;c.stroke();
+    this.circle(x,y+44,45,'#284a69','#8fb9cf',4);
+    this.circle(x,y+44,31,null,'#77bbd2',3);
+    c.save();c.translate(x,y+43);c.rotate(.53);this.rr(-17,-48,34,73,13,'#bbcdd7','#39516d',4);this.rr(-13,-47,26,16,6,'#87c9dc','#386983',2);c.restore();
+    this.screen(r.x+r.w-99,y+27,62,28,'#83d4cb');return true;
+   }
+   case 'reactor':
+   case 'shields':{
+    const accent=r.id==='reactor'?'#c9a4ff':'#79f2de';
+    this.circle(x,y,75,'#263753','#94b1c6',5);this.circle(x,y,63,'#365877',accent,4);
+    for(let i=0;i<6;i++){
+     c.save();c.translate(x,y);c.rotate(i*TAU/6);this.rr(-9,-69,18,26,5,'#a6bbc8','#3d5972',2);c.restore();
+    }
+    c.save();c.shadowColor=accent;c.shadowBlur=18;this.circle(x,y,37,'#203c58',accent,3);this.circle(x,y,19,accent);c.restore();
+    for(const side of [-1,1]){this.line(x+side*75,y,x+side*111,y,accent,4);this.screen(x+side*130-19,y-11,38,23,'#8bb8cc');}
+    return true;
+   }
+   default:return false;
+  }
+ }
+ gardenPlant(x,y,r){
+  const c=this.ctx;
+  this.circle(x,y,r*.86,'#315d4d','#274b43',1.6);
+  for(let i=0;i<5;i++){
+   c.save();c.translate(x,y);c.rotate(i*TAU/5+.23);
+   c.beginPath();c.ellipse(0,-r*.57,r*.32,r*.68,.24,0,TAU);c.fillStyle=i%2?'#a6cf85':'#72bb92';c.fill();c.restore();
+  }
+  this.circle(x,y,r*.21,'#efcd89');
  }
  auroraDetails(r){
   const c=this.ctx;
@@ -2168,11 +2407,18 @@ class Renderer {
     for(let a=0;a<TAU;a+=TAU/6){this.line(1183+Math.cos(a)*34,795+Math.sin(a)*34,1183+Math.cos(a)*40,795+Math.sin(a)*40,'#d3d7be',4);}this.screen(1247,775,47,28,'#9fcbb9');break;
   }
  }
- motionFor(key,p){this.walkStates??=new Map();const previous=this.walkStates.get(key),distance=previous?dist(previous,p):0,dt=Math.min(.1,this.drawDt||.016),moving=distance>.04&&distance<65&&!p.inVent&&p.alive!==false;const energy=this.reducedMotion||p.ghost?0:(previous?.energy||0)+((moving?1:0)-(previous?.energy||0))*(1-Math.exp(-dt*14));this.walkStates.set(key,{x:p.x,y:p.y,energy});return energy;}
+ motionFor(key,p){this.walkStates??=new Map();const previous=this.walkStates.get(key),distance=previous?dist(previous,p):0,dt=Math.min(.1,this.drawDt||.016),moving=distance>.04&&distance<65&&!p.inVent&&(p.alive!==false||p.ghost);const energy=this.reducedMotion?0:(previous?.energy||0)+((moving?1:0)-(previous?.energy||0))*(1-Math.exp(-dt*14));this.walkStates.set(key,{x:p.x,y:p.y,energy});return energy;}
  pet(p){drawPet(this.ctx,{...p,motionEnergy:this.motionFor('pet:'+p.ownerId,p)},this.clock,this.reducedMotion);}
  crew(p,playing){
+  const source=p,own=p.id===this.game.player.id,now=this.game.renderTime??this.game.time??0;
+  const elapsed=p.morphAt==null?Infinity:(now-p.morphAt)/ROLE_TIMING.morph;
+  if(p.disguise)p={...p,...p.disguise};
   const c=this.ctx,pose=gaitPose((p.steps||0)*.55,this.motionFor('crew:'+p.id,p)),x=p.x,y=p.y;
-  c.save();c.translate(x,y);c.scale(p.dir,1);if(p.ghost)c.globalAlpha=.42;
+  if(source.shieldUntil>now&&(own||this.game.player.ghost))this.guardianShield(x,y,0);
+  if(source.shieldBreakAt!=null&&now-source.shieldBreakAt<.85)this.guardianShield(x,y,Math.max(.01,(now-source.shieldBreakAt)/.85));
+  if(elapsed<1){this.morphShell(x,y,Math.max(0,elapsed));if(elapsed<.74)return;}
+  c.save();c.translate(x,y);c.scale(p.dir,1);if(p.ghost)c.globalAlpha=.56;
+  if(elapsed<1&&!this.reducedMotion)c.globalAlpha*=Math.min(1,(elapsed-.74)*6);
   c.beginPath();c.ellipse(0,20,22,6,0,0,TAU);c.fillStyle='#09142266';c.fill();
   if(p.id===this.game.player.id){c.save();c.scale(1,.4);this.circle(0,36,29,null,'#7cf1d599',2.5);c.restore();}
   for(const [center,reach,lift] of [[-6,pose.leftReach,pose.leftLift],[11,pose.rightReach,pose.rightLift]]){c.save();c.translate(center+reach,14-lift);c.rotate(-reach*.055);this.rr(-5.5,-8,11,14,4,p.color,'#142332',3);c.restore();}
@@ -2182,9 +2428,37 @@ class Renderer {
   c.save();c.globalAlpha*=.16;this.rr(-12,-4,28,12,4,'#04121c');c.restore();
   c.beginPath();c.moveTo(-9,-20);c.quadraticCurveTo(-9,-29,-2,-29);c.lineTo(-2,-26);c.quadraticCurveTo(-6,-25,-6,-19);c.closePath();c.fillStyle='#ffffff20';c.fill();
   this.rr(-1,-25,25,17,7,'#93b8c9','#142332',3.5);this.rr(3,-22,16,5,2,'#d0ecf0');drawOutfit(c,p.hat,p.accessory,0);c.restore();c.restore();
-  if(p.id===this.game.player.id){this.text(p.ghost?'YOU · GHOST':'YOU',x,y-(p.hat&&p.hat!=='none'?72:49),11,'#9aefd5');}
+  if(p.ghost&&(source.role==='guardian'||source.guardian)){c.save();c.beginPath();c.ellipse(x,y-50,13,4,0,0,TAU);c.strokeStyle='#c6f4ff';c.lineWidth=2;c.stroke();c.restore();}
+  if(own){this.text(p.ghost?'YOU · GHOST':'YOU',x,y-(p.ghost||p.hat&&p.hat!=='none'?72:49),11,'#9aefd5');}
   else this.text(p.name,x,y-(p.hat&&p.hat!=='none'?67:43),10,p.imp&&this.game.isImpostor?'#f59aa5':'#d6dde0c9','center','Space Grotesk',false);
-  if(playing&&p.imp&&this.game.role==='impostor'){const ally=p.id!==this.game.player.id;if(ally)this.rr(x-38,y+25,76,19,5,'#442335ee','#d77889',1.5);this.text(ally?'TEAMMATE':'IMPOSTOR',x,y+34,9,ally?'#ffe6cf':'#ff9ba6');}
+  if(playing&&p.imp&&this.game.isImpostor&&!p.ghost){if(!own)this.rr(x-38,y+25,76,19,5,'#442335ee','#d77889',1.5);this.text(own?'IMPOSTOR':'TEAMMATE',x,y+34,9,own?'#ff9ba6':'#ffe6cf');}
+ }
+ guardianShield(x,y,burst){
+  const c=this.ctx;c.save();c.translate(x,y-8);c.globalAlpha=burst?1-burst:.82;
+  const radius=31+(this.reducedMotion?0:burst*32);
+  c.beginPath();c.ellipse(0,0,radius,radius*1.25,0,0,TAU);c.fillStyle='#9eeaff22';c.fill();c.lineWidth=3;c.strokeStyle='#a7efff';c.stroke();
+  if(burst&&!this.reducedMotion)for(let i=0;i<8;i++){const a=i*TAU/8;this.line(Math.cos(a)*radius,Math.sin(a)*radius*1.25,Math.cos(a)*(radius+10),Math.sin(a)*(radius+10)*1.25,'#e4fdff',2);}
+  c.restore();
+ }
+ morphShell(x,y,t){
+  const c=this.ctx;c.save();c.translate(x,y-8);
+  if(t<.74){
+   const grow=this.reducedMotion?1:Math.min(1,.28+t*4.6),rx=27*grow,ry=37*grow;
+   c.translate(0,22*(1-grow));
+   if(!this.reducedMotion){const pulse=Math.sin(t*28)*Math.min(.045,t*.2);c.rotate(pulse);c.scale(1+pulse,1-pulse);}
+   const shell=c.createRadialGradient(-rx*.34,-ry*.44,2,0,0,ry);
+   shell.addColorStop(0,'#ffd3b9');shell.addColorStop(.25,'#ff827b');shell.addColorStop(.67,'#e13f69');shell.addColorStop(1,'#611f55');
+   c.beginPath();c.ellipse(0,0,rx,ry,.11,0,TAU);c.fillStyle=shell;c.fill();c.strokeStyle='#ffac99';c.lineWidth=2.5;c.stroke();
+   c.beginPath();c.moveTo(-rx,ry*.42);c.bezierCurveTo(-rx*.5,ry*.95,-rx*.7,ry*.1,0,ry*.67);c.bezierCurveTo(rx*.5,ry*.93,rx*.6,ry*.1,rx,ry*.23);c.quadraticCurveTo(rx*.64,ry*1.18,0,ry);c.quadraticCurveTo(-rx*.62,ry*1.12,-rx,ry*.42);c.fillStyle='#25675b';c.fill();c.strokeStyle='#92e7a6';c.lineWidth=2;c.stroke();
+   if(t>.46){this.line(-3,-ry+3,3,-12,'#fff7d4',2.4);this.line(3,-12,-5,0,'#fff7d4',2.4);this.line(-5,0,6,16,'#fff7d4',2.4);}
+  }else if(!this.reducedMotion){
+   const burst=(t-.74)/.26;c.globalAlpha=1-burst;
+   this.circle(0,0,27+burst*38,null,'#ffcfaa',3);
+   for(let i=0;i<12;i++){
+    const a=i*TAU/12,d=21+burst*(36+i%4*7);c.save();c.translate(Math.cos(a)*d,Math.sin(a)*d);c.rotate(a+burst*2);this.rr(-5,-3,10,6,2,i%3===0?'#93e6a4':'#ff806d');c.restore();
+   }
+  }
+  c.restore();
  }
  body(b){const c=this.ctx;c.save();c.translate(b.x,b.y);c.rotate(-.35);this.rr(-22,-8,39,22,10,b.color,'#162534',4);this.rr(7,-17,8,22,3,'#d1d9ce','#344653',2);this.circle(8,-17,5,'#d1d9ce');this.circle(14,-17,5,'#d1d9ce');c.restore();}
 }
@@ -2262,6 +2536,21 @@ function openExtraTask(t,{shell,finish,isCurrent,game,beep,motion=false}){
  return true;
 }
 
+function specialAbility(actor,now){
+ const guardian=actor.role==='guardian',shifter=actor.role==='shapeshifter';
+ if(!guardian&&!shifter)return null;
+ if(shifter&&!actor.alive)return null;
+ const active=shifter&&!!actor.disguise;
+ const seconds=Math.max(0,Math.ceil((active?actor.shiftUntil:(guardian?actor.protectReadyAt:actor.shiftReadyAt)||0)-now));
+ const label=active?'Unshift':guardian?'Protect':'Shift';
+ return {label:seconds?`${label} · ${seconds}s`:label,ready:!actor.inVent&&(active||seconds===0),icon:guardian?'protect':'shift'};
+}
+function roleTargetPicker(guardian,targets,avatar,escape){
+ const title=guardian?'Protect a crewmate':'Choose a disguise';
+ const description=guardian?'Choose a nearby living player. The shield blocks one kill for 12 seconds.':'Copy a living player’s suit, name, and outfit for 16 seconds.';
+ const buttons=targets.map(c=>`<button class="role-target" data-role-target="${c.id}">${avatar(c.color,45,c.hat,c.accessory)}<strong data-i18n-skip>${escape(c.name)}</strong></button>`).join('');
+ return `<div class="eyebrow">${guardian?'Guardian Angel':'Shapeshifter'}</div><h2>${title}</h2><p>${description}</p>${buttons?`<div class="role-target-grid">${buttons}</div>`:`<div class="panel-message">${guardian?'Move closer to a living player.':'No disguises are available.'}</div>`}`;
+}
 function joystickVector(dx,dy,radius=38,deadzone=7){
  if(!Number.isFinite(dx)||!Number.isFinite(dy)||radius<=deadzone)return {x:0,y:0,px:0,py:0};
  const length=Math.hypot(dx,dy);if(length<=deadzone)return {x:0,y:0,px:dx,py:dy};
@@ -2284,7 +2573,9 @@ const actionIcons={
  kill:'<path d="M7 18a11 11 0 1 1 18 0l-3 3v6H10v-6Z"/><path d="M12 23v4m4-4v4m4-4v4m-6-7 2-3 2 3"/><circle cx="11" cy="12" r="3"/><circle cx="21" cy="12" r="3"/>',
  vent:'<rect x="3" y="6" width="26" height="21" rx="3"/><path d="M8 11h16M8 16h16M8 21h16"/>',
  sabotage:'<path d="M18 2 6 18h9l-2 12L27 12H17Z"/>',
- vitals:'<rect x="3" y="5" width="26" height="21" rx="3"/><path d="M6 16h5l3-6 4 12 3-6h5M11 30h10"/>'
+ vitals:'<rect x="3" y="5" width="26" height="21" rx="3"/><path d="M6 16h5l3-6 4 12 3-6h5M11 30h10"/>',
+ protect:'<path d="M16 3 27 7v9c0 6-5 11-11 14C10 27 5 22 5 16V7Z M10 16l4 4 8-9"/>',
+ shift:'<path d="M5 12h21l-5-5m5 5-5 5M27 22H6l5-5m-5 5 5 5"/>'
 };
 function actionLabel(name,key,icon){return `<span class="action-symbol"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${actionIcons[icon]}</svg></span><span>${name}${key?` <kbd>${key}</kbd>`:''}</span>`;}
 let prefs={name:'You',color:0,sound:false,motion:false,speed:175,players:15,impostors:2,mapId:'skeld',hat:'none',accessory:'none',pet:'none',inputMode:innerWidth<750?'mobile':'pc'};
@@ -2311,13 +2602,16 @@ function customize(){
 }
 function refreshLobby(){
  game.configure(prefs);game.resetCrew(prefs.name,prefs.color);game.tasks=game.map.tasks.map(t=>({...t,done:false}));renderer.camera=null;renderer.sightCache=null;customize();
+ const shiftCard=$$('.role-card').find(card=>card.dataset.role==='shapeshifter');shiftCard.hidden=prefs.impostors!==3;
+ if(shiftCard.hidden&&chosenRole==='shapeshifter')chosenRole='impostor';syncRoleCards();
  $('#playerSlot').textContent='01 / '+String(prefs.players).padStart(2,'0');$('#crewReady').textContent=(prefs.players-1)+' AI players are ready to board';$('#lobbySummary').textContent=prefs.players+' players · '+prefs.impostors+' impostor'+(prefs.impostors>1?'s':'');$('#lobbyMapName').textContent=game.map.name;$('#mapTitle').textContent=game.map.name;$('#mapSubtitle').textContent=game.map.subtitle.toUpperCase();$('#impostorTag').textContent=prefs.impostors+' IMPOSTOR'+(prefs.impostors>1?'S':'');$('#locationText').textContent=game.roomAt(game.player.x,game.player.y)?.name||'Lobby';$('.ship-coordinates').textContent=game.map.id==='aurora'?'AURORA · ORBITAL RESEARCH':'SKELD · SECTOR 07';
 }
 function applyDevice(){document.body.classList.toggle('layout-mobile',prefs.inputMode==='mobile');document.body.classList.toggle('layout-pc',prefs.inputMode==='pc');$$('[data-device]').forEach(b=>{b.classList.toggle('selected',b.dataset.device===prefs.inputMode);b.setAttribute('aria-pressed',b.dataset.device===prefs.inputMode);});resetTouch();}
 $$('[data-device]').forEach(b=>b.onclick=()=>{prefs.inputMode=b.dataset.device;save();applyDevice();});
 refreshLobby();soundUI();applyDevice();$('#fullscreenBtn').innerHTML=icons.full;
 $('#playerName').addEventListener('input',e=>{prefs.name=e.target.value.slice(0,12);game.player.name=prefs.name||'You';save();});
-$$('.role-card').forEach(b=>b.onclick=()=>{chosenRole=b.dataset.role;$$('.role-card').forEach(el=>{el.classList.toggle('selected',el===b);el.setAttribute('aria-pressed',el===b);});beep();});
+function syncRoleCards(){$$('.role-card').forEach(el=>{const selected=el.dataset.role===chosenRole;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',selected);});}
+$$('.role-card').forEach(b=>b.onclick=()=>{if(b.hidden)return;chosenRole=b.dataset.role;syncRoleCards();beep();});
 $('#soundBtn').onclick=()=>{prefs.sound=!prefs.sound;soundUI();save();beep();};
 $('#fullscreenBtn').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Fullscreen is unavailable in this preview. Open the game in a new tab to expand it.');}};
 function start(){
@@ -2327,7 +2621,7 @@ function start(){
  $('#lobbyPanel').hidden=true;$('#missionPanel').hidden=false;$('#mapCaption').hidden=true;document.body.classList.add('in-round');
  const role=ROLE_INFO[game.role];$('#roleTitle').textContent=role.name;$('#roleTitle').style.color=role.color;$('.mission-title').classList.toggle('impostor',game.isImpostor);
  $('#roleDesc').textContent=role.description;$('#taskHeading').textContent=game.isImpostor?'FAKE TASKS':'YOUR TASKS';
- $('#killBtn').hidden=!game.isImpostor;$('#ventBtn').hidden=!game.canVent;$('#sabotageBtn').hidden=!game.isImpostor;$('#abilityBtn').hidden=game.role!=='scientist';
+ $('#killBtn').hidden=!game.isImpostor;$('#ventBtn').hidden=!game.canVent;$('#sabotageBtn').hidden=!game.isImpostor;$('#abilityBtn').hidden=!['scientist','shapeshifter'].includes(game.role);
  renderer.focusTask=null;renderMission();canvas.focus({preventScroll:true});
  const reveal=$('#roleReveal');revealToken++;reveal.hidden=false;reveal.classList.remove('visible','leaving');reveal.style.setProperty('--role-color',role.color);$('#revealTitle').textContent='';$('#revealDescription').textContent='';$('#revealCrew').innerHTML='';$('#revealTeam').textContent='';document.body.classList.add('revealing');$('#toast').classList.remove('visible');beep('report');
  if(innerWidth<=650)window.scrollTo({top:0,behavior:'smooth'});
@@ -2350,6 +2644,7 @@ function finishReveal(){
  toast(ROLE_INFO[game.role].name+' · '+ROLE_INFO[game.role].description);
 }
 function renderMission(){
+ const role=ROLE_INFO[game.role];$('#roleTitle').textContent=role.name;$('#roleTitle').style.color=role.color;$('#roleDesc').textContent=role.description;
  const jammed=game.sabotageState?.kind==='comms';
  $('#taskCount').textContent=jammed?'—':`${game.completed} / ${game.tasks.length}`;$('#taskProgress').style.width=(jammed?0:game.completed/game.tasks.length*100)+'%';
  $('#taskList').innerHTML=jammed?'<div class="comms-lost">⌁<strong>Communications down</strong><span>Restore the radio in Navigation<br>to recover your task list.</span></div>':game.tasks.map(t=>`<button class="task-item ${t.done?'done':''} ${renderer.focusTask===t.id?'focused':''}" data-task="${t.id}"><span class="check">${t.done?'✓':''}</span><span><strong>${t.name}</strong><small>${game.map.rooms.find(r=>r.id===t.room).name}</small></span><span class="task-arrow">${t.done?'':'↗'}</span></button>`).join('');
@@ -2372,7 +2667,7 @@ $('#leaveBtn').onclick=()=>{closable(`<div class="eyebrow">RETURN TO THE LOBBY</
 $('#homeBtn').onclick=()=>{if(game.phase==='lobby'){closeModal();return;}if(game.phase==='ended')returnLobby();else $('#leaveBtn').onclick();};
 function showRoundSettings(){
  if(game.phase!=='lobby')return;const draft=normalizeLobby(prefs);
- closable(`<div class="eyebrow">BUILD YOUR ROUND</div><h2>Lobby settings</h2><p>Choose the crew size, impostor team, and ship. Player count includes you.</p><div class="lobby-selects"><label>PLAYERS<select id="playersSelect" aria-label="Number of players">${Array.from({length:12},(_,i)=>i+4).map(n=>`<option value="${n}">${n} players · ${n-1} AI</option>`).join('')}</select></label><label>IMPOSTORS<select id="impostorsSelect" aria-label="Number of impostors">${[1,2,3].map(n=>`<option value="${n}">${n} impostor${n>1?'s':''}</option>`).join('')}</select></label></div><p class="lobby-rule" id="impostorRule">2 impostors need 7+ players. 3 impostors need 9+.</p><div class="section-heading"><span>CHOOSE YOUR MAP</span><span>2 DECK PLANS</span></div><div class="map-picker">${Object.values(MAPS).map(m=>`<button class="map-choice ${m.id===draft.mapId?'selected':''}" data-map-choice="${m.id}" aria-pressed="${m.id===draft.mapId}"><svg viewBox="0 0 ${m.world.w} ${m.world.h}" aria-hidden="true"><g fill="${m.theme==='aurora'?'#426b68':'#384f6d'}" stroke="#9bb8bf" stroke-width="15">${m.halls.map(h=>`<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}"/>`).join('')}${m.rooms.map(r=>`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="30"/>`).join('')}</g></svg><strong>${m.name}</strong><small>${m.subtitle}</small><span>${m.id==='skeld'?'30% wider rooms & corridors':'Atrium, gardens & outer research ring'}</span></button>`).join('')}</div><button class="launch-btn" id="applyLobby">Apply settings <span>✓</span></button>`,'lobby-modal');
+ closable(`<div class="eyebrow">BUILD YOUR ROUND</div><h2>Lobby settings</h2><p>Choose the crew size, impostor team, and ship. Player count includes you.</p><div class="lobby-selects"><label>PLAYERS<select id="playersSelect" aria-label="Number of players">${Array.from({length:12},(_,i)=>i+4).map(n=>`<option value="${n}">${n} players · ${n-1} AI</option>`).join('')}</select></label><label>IMPOSTORS<select id="impostorsSelect" aria-label="Number of impostors">${[1,2,3].map(n=>`<option value="${n}">${n} impostor${n>1?'s':''}</option>`).join('')}</select></label></div><p class="lobby-rule" id="impostorRule">2 impostors need 7+ players. 3 impostors need 9+.</p><div class="section-heading"><span>CHOOSE YOUR MAP</span><span>2 DECK PLANS</span></div><div class="map-picker">${Object.values(MAPS).map(m=>`<button class="map-choice ${m.id===draft.mapId?'selected':''}" data-map-choice="${m.id}" aria-pressed="${m.id===draft.mapId}">${deckPlanSVG(m,null,'','map-thumb')}<strong>${m.name}</strong><small>${m.subtitle}</small><span>${m.id==='skeld'?'30% wider rooms & corridors':'Atrium, gardens & outer research ring'}</span></button>`).join('')}</div><button class="launch-btn" id="applyLobby">Apply settings <span>✓</span></button>`,'lobby-modal');
  $('#playersSelect').value=String(draft.players);$('#impostorsSelect').value=String(draft.impostors);
  const updateLimits=()=>{draft.players=Number($('#playersSelect').value);const valid=normalizeLobby(draft);draft.impostors=valid.impostors;const max=draft.players>=9?3:draft.players>=7?2:1;$$('#impostorsSelect option').forEach(o=>o.disabled=Number(o.value)>max);$('#impostorsSelect').value=String(draft.impostors);$('#impostorRule').textContent=max===1?'This crew size supports 1 impostor. Choose 7+ players for 2 or 9+ for 3.':'2 impostors need 7+ players. 3 impostors need 9+.';};
  $('#playersSelect').onchange=updateLimits;$('#impostorsSelect').onchange=e=>{draft.impostors=Number(e.target.value);updateLimits();};
@@ -2407,12 +2702,12 @@ function showSettings(){
 $('#settingsBtn').onclick=showSettings;
 function taskShell(t,description,content){
  const room=game.map.rooms.find(r=>r.id===t.room).name;
- const id=closable(`<div class="eyebrow">${room.toUpperCase()} · ${game.role==='impostor'?'FAKE TASK':'SHIP MAINTENANCE'}</div><h2>${t.name}</h2><p>${description}</p><div class="task-screen">${content}</div><div class="task-foot"><span>● CONNECTION SECURE</span><span id="taskStatus">AWAITING INPUT</span></div>`,'task-modal',true);
+ const id=closable(`<div class="eyebrow">${room.toUpperCase()} · ${game.isImpostor?'FAKE TASK':'SHIP MAINTENANCE'}</div><h2>${t.name}</h2><p>${description}</p><div class="task-screen">${content}</div><div class="task-foot"><span>● CONNECTION SECURE</span><span id="taskStatus">AWAITING INPUT</span></div>`,'task-modal',true);
  currentTask=t.id;return id;
 }
 function taskDone(t,id){
  if(id!==modalId)return;beep('success');game.completeTask(t.id);renderMission();
- $('.task-screen').innerHTML=`<div class="task-success"><div class="success-ring">✓</div><h2>${game.role==='impostor'?'Convincing work.':'Task complete'}</h2><p>${game.role==='impostor'?'Your cover is looking good.':'One step closer to a safe flight.'}</p></div>`;
+ $('.task-screen').innerHTML=`<div class="task-success"><div class="success-ring">✓</div><h2>${game.isImpostor?'Convincing work.':'Task complete'}</h2><p>${game.isImpostor?'Your cover is looking good.':'One step closer to a safe flight.'}</p></div>`;
  $('#taskStatus').textContent='ALL SYSTEMS GO';
  setTimeout(()=>{if(id===modalId)closeModal();},1100);
 }
@@ -2491,10 +2786,7 @@ function openRepair(terminal){
   $('#radioDial').oninput=tune;tune();$('#lockFrequency').onclick=()=>{if(game.repairSystem(terminal.id,Number($('#radioDial').value)))repairDone(id);else{toast('Tune the dial until the signal turns green.');beep('report');}};
  }
 }
-function shipDiagram(markers=''){
- const size=game.map.world.w;
- return `<div class="ship-diagram-frame"><svg class="ship-diagram" viewBox="0 0 ${size} ${game.map.world.h}" aria-label="Ship layout"><g fill="#243b54" stroke="#6e99b6" stroke-width="5">${game.map.halls.map(h=>`<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="8"/>`).join('')}${game.map.rooms.map(r=>`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="18"/>`).join('')}</g>${game.map.rooms.map(r=>`<text x="${r.x+r.w/2}" y="${r.y+r.h/2}" text-anchor="middle" fill="#c4dbe6" font-size="${Math.round(size/70)}" font-family="Space Grotesk, sans-serif">${r.name}</text>`).join('')}${markers}<circle cx="${game.player.x}" cy="${game.player.y}" r="${size/100}" fill="${game.player.color}" stroke="white" stroke-width="5"/><text x="${game.player.x}" y="${game.player.y-size/45}" text-anchor="middle" fill="white" font-size="${size/75}">YOU</text></svg></div>`;
-}
+function shipDiagram(markers=''){return `<div class="ship-diagram-frame">${deckPlanSVG(game.map,game.player,markers)}</div>`;}
 function showMap(){
  if(game.phase!=='playing')return;const jammed=game.sabotageState?.kind==='comms';
  const markers=(jammed?[]:game.tasks.filter(t=>!t.done)).map(t=>`<g data-map-task="${t.id}" role="button" tabindex="0" aria-label="Navigate to ${t.name}" class="map-objective"><circle cx="${t.x}" cy="${t.y}" r="22" fill="#ebcf74"/><text x="${t.x}" y="${t.y+8}" text-anchor="middle" font-size="27" font-weight="bold" fill="#24384d">!</text></g>`).join('')+game.repairTargets.map(t=>`<g data-map-repair="${t.id}" role="button" tabindex="0" aria-label="Navigate to repair" class="map-objective"><circle cx="${t.x}" cy="${t.y}" r="25" fill="#ee7d78"/><text x="${t.x}" y="${t.y+9}" text-anchor="middle" font-size="30" fill="white">!</text></g>`).join('');
@@ -2503,7 +2795,7 @@ function showMap(){
  $$('[data-map-task],[data-map-repair]').forEach(b=>{b.onclick=()=>go(b);b.onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();go(b);}};});
 }
 function showSabotage(){
- if(game.phase!=='playing'||game.role!=='impostor'||!game.player.alive)return;
+ if(game.phase!=='playing'||!game.isImpostor||!game.player.alive)return;
  const unavailable=!!game.sabotageState||game.sabotageCooldown>0;
  closable(`<div class="eyebrow" style="color:var(--red)">IMPOSTOR CONTROLS</div><h2>Pick your distraction.</h2><p>Choose a system to sabotage. The crew must travel to the damaged panels to repair it.</p><div class="sabotage-options">${Object.entries(game.map.systems).map(([kind,s])=>`<button class="sabotage-option" data-sabotage="${kind}" ${unavailable?'disabled':''}><span class="system-icon">${s.icon}</span><strong>${s.name}</strong><small>${s.description}</small><span class="sabotage-destination">${game.map.rooms.find(r=>r.id===s.room).name}</span></button>`).join('')}</div><div class="panel-message" id="sabotageStatus">${game.sabotageState?'A SABOTAGE IS ALREADY ACTIVE':game.sabotageCooldown>0?'SYSTEM COOLDOWN · '+Math.ceil(game.sabotageCooldown)+'s':'ONE SYSTEM AT A TIME · 25s COOLDOWN AFTER REPAIR'}</div>`,'sabotage-modal',true);
  $$('[data-sabotage]').forEach(b=>b.onclick=()=>{if(game.sabotage(b.dataset.sabotage)){closeModal();renderMission();beep('report');}});
@@ -2519,7 +2811,21 @@ function updateVitals(){
  $('#vitalsGrid').innerHTML=game.getVitals().map(c=>`<div class="vitals-card ${c.alive?'alive':'dead'}"><div class="vitals-person">${crewSVG(c.color,23,c.hat,c.accessory)}<strong${c.id===0?'':' data-i18n-skip'}>${c.id===0?'You':escape(c.name)}</strong></div><svg viewBox="0 0 150 44" aria-hidden="true"><path d="${c.alive?'M0 24H22l5-5 7 10 8-5h13l5-19 8 36 7-17h11l6-5 7 10 8-5h43':'M0 24H150'}"/></svg><div class="vitals-reading"><span>${c.alive?c.bpm+' BPM':'FLATLINE'}</span><strong>${c.alive?'ALIVE':'DEAD'}</strong></div></div>`).join('');
  $('#vitalsBatteryFill').style.width=game.vitalsBattery*10+'%';$('#vitalsBatteryLabel').textContent=game.vitalsBattery.toFixed(1)+'s';
 }
-$('#abilityBtn').onclick=showVitals;
+function showAbility(){
+ if(game.role==='scientist'){showVitals();return;}
+ const player=game.player,ability=specialAbility(player,game.time);
+ if(game.phase!=='playing'||!ability?.ready||game.morphProgress(player)!==null||paused||killVisual||$('#modalRoot').children.length)return;
+ if(player.disguise){game.endShift(player);beep();return;}
+ const guardian=player.role==='guardian';
+ const targets=game.alive.filter(c=>c!==player&&(!guardian||!c.inVent&&dist(player,c)<=ROLE_TIMING.protectRange));
+ closable(roleTargetPicker(guardian,targets,crewSVG,escape),'role-ability-modal',true);
+ $$('[data-role-target]').forEach(button=>button.onclick=()=>{
+  const target=targets.find(c=>c.id===Number(button.dataset.roleTarget));
+  if(guardian?game.protect(player,target):game.shift(player,target)){closeModal();beep('success');}
+  else toast('That player is no longer available.');
+ });
+}
+$('#abilityBtn').onclick=showAbility;
 function showCameras(){
  if(!game.openCameras())return;selectedCamera=0;
  closable(`<div class="eyebrow">SECURITY · LIVE SURVEILLANCE</div><h2>Camera monitor</h2><p>Three fixed views. The ship keeps moving while you watch. Communications sabotage disconnects the feeds.</p><div class="camera-tabs">${game.map.cameras.map((c,i)=>`<button class="${i===0?'selected':''}" data-camera-tab="${i}">${String(i+1).padStart(2,'0')} · ${c.name}</button>`).join('')}</div><div class="camera-grid">${game.map.cameras.map((c,i)=>`<article class="camera-card ${i===0?'selected':''}" data-camera-card="${i}"><header><span>CAM ${String(i+1).padStart(2,'0')}</span><strong>${c.name}</strong><i></i></header><canvas id="securityCam${i}" aria-label="Live view of ${c.name}"></canvas></article>`).join('')}</div><div class="camera-footer"><span id="cameraStatus">● LIVE · THREE FIXED CAMERAS</span><span>Other rooms are outside camera coverage</span></div>`,'cameras-modal',true);
@@ -2540,7 +2846,7 @@ function clearScene(){killToken++;killVisual=false;pendingDeath=false;pendingWin
 function showKillVisual(event){
  closeModal();killVisual=true;resetTouch();keys.clear();const token=++killToken,scene=$('#killScene');scene.innerHTML=killSceneMarkup(event,crewSVG,escape);scene.hidden=false;document.body.classList.add('kill-playing');beep('kill');
  setTimeout(()=>{if(token!==killToken)return;scene.hidden=true;scene.innerHTML='';killVisual=false;document.body.classList.remove('kill-playing');
-  if(pendingWin||game.phase==='ended')showEnd();else if(pendingMeeting||game.phase==='meeting')showMeeting();else if(pendingDeath){renderMission();toast('You are a ghost now. Finish your tasks to help the crew win.');}
+  if(pendingWin||game.phase==='ended')showEnd();else if(pendingMeeting||game.phase==='meeting')showMeeting();else if(pendingDeath){renderMission();toast(ghostNotice());}
   pendingWin=pendingDeath=pendingMeeting=false;
  },prefs.motion?1200:1900);
 }
@@ -2571,7 +2877,7 @@ window.addEventListener('keydown',e=>{
  if(e.code==='KeyM'&&!e.repeat&&game.phase==='playing'){if($('.ship-map-modal'))closeModal();else if(!$('#modalRoot').children.length)showMap();return;}
  if(e.code==='KeyT'&&!e.repeat&&game.phase==='playing'&&!$('#modalRoot').children.length){toggleTasks();return;}
  if(e.code==='KeyF'&&!e.repeat&&game.phase==='playing'&&!$('#modalRoot').children.length){showSabotage();return;}
- if(e.code==='KeyB'&&!e.repeat&&game.phase==='playing'){if($('.vitals-modal'))closeModal();else if(!$('#modalRoot').children.length)showVitals();return;}
+ if(e.code==='KeyB'&&!e.repeat&&game.phase==='playing'){if($('.vitals-modal,.role-ability-modal'))closeModal();else if(!$('#modalRoot').children.length)showAbility();return;}
  if($('#modalRoot').children.length)return;
  if(paused||game.phase!=='playing')return;
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();keys.add(e.code);}
@@ -2600,13 +2906,18 @@ function updateControls(){
  $('#useBtn').disabled=!target||paused||killVisual;$('#reportBtn').disabled=!p.alive||p.inVent||!game.bodies.some(b=>!game.reported.has(b.id)&&dist(p,b)<105)||paused||killVisual;
  $('#useBtn').innerHTML=actionLabel(target?.type==='repair'?'Repair':target?.type==='cameras'?'Cameras':'Use','E','use');$('#reportBtn').innerHTML=actionLabel('Report','R','report');$('#ventBtn').innerHTML=actionLabel('Vent','V','vent');
  if(game.canVent){$('#ventBtn').disabled=!p.alive||(p.inVent?p.ventTravel>0:game.ventCooldown>0||!game.map.vents.some(v=>dist(v,p)<80))||paused||killVisual;$('#ventBtn').innerHTML=actionLabel(p.inVent?'Exit':game.ventCooldown>0?'Vent · '+Math.ceil(game.ventCooldown)+'s':'Vent','V','vent');}
- if(game.role==='scientist'){$('#abilityBtn').disabled=!p.alive||game.vitalsBattery<.25||s?.kind==='comms'||paused;$('#abilityBtn').innerHTML=actionLabel('Vitals '+Math.ceil(game.vitalsBattery)+'s','B','vitals');updateVitals();}
+ const ability=specialAbility(p,game.time),morphing=game.morphProgress(p)!==null;
+ const abilityBtn=$('#abilityBtn');abilityBtn.hidden=!(p.alive&&game.role==='scientist')&&!ability;
+ if(game.role==='scientist'){abilityBtn.disabled=!p.alive||game.vitalsBattery<.25||s?.kind==='comms'||paused;abilityBtn.innerHTML=actionLabel('Vitals '+Math.ceil(game.vitalsBattery)+'s','B','vitals');updateVitals();}
+ else if(ability){abilityBtn.disabled=!ability.ready||morphing||paused||killVisual;abilityBtn.innerHTML=actionLabel(ability.label,'B',ability.icon);}
+ $('#killBtn').hidden=$('#sabotageBtn').hidden=!p.alive||!game.isImpostor;$('#ventBtn').hidden=!p.alive||!game.canVent;
  const hint=$('#locationHint');hint.style.display=target&&!paused&&!killVisual&&!$('#modalRoot').children.length?'block':'none';if(target)hint.textContent=target.type==='task'?`E · ${target.task.name}`:target.type==='repair'?`E · ${game.map.systems[s.kind].action}`:target.type==='cameras'?'E · Security cameras':'E · Emergency meeting';
- if(game.role==='impostor'){
-  $('#killBtn').disabled=game.killCooldown>0||!game.killTarget()||paused||killVisual;$('#killBtn').innerHTML=actionLabel(game.killCooldown>0?'Kill · '+Math.ceil(game.killCooldown)+'s':'Kill','Q','kill');
+ if(game.isImpostor){
+  $('#killBtn').disabled=morphing||game.killCooldown>0||!game.killTarget()||paused||killVisual;$('#killBtn').innerHTML=actionLabel(game.killCooldown>0?'Kill · '+Math.ceil(game.killCooldown)+'s':'Kill','Q','kill');
   $('#sabotageBtn').disabled=!!s||game.sabotageCooldown>0||paused;$('#sabotageBtn').innerHTML=actionLabel(s?'Active':game.sabotageCooldown>0?Math.ceil(game.sabotageCooldown)+'s':'Sabotage','F','sabotage');
  }
 }
+function ghostNotice(){return game.role==='guardian'?'You are the Guardian Angel. Use Protect to shield a nearby crewmate.':'You are a ghost now. Finish your tasks to help the crew win.';}
 let previous=performance.now();function frame(now){
  const dt=Math.min((now-previous)/1000,.1);previous=now;
  if(!paused&&!killVisual)game.update(dt,touch.pointer!==null?{x:touch.x,y:touch.y}:{x:(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),y:(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)});
@@ -2620,7 +2931,7 @@ let previous=performance.now();function frame(now){
   if(event.type==='toast')toast(event.message);if(event.type==='meeting'){if(killVisual)pendingMeeting=true;else showMeeting();}if(event.type==='voteResult')showVoteResult(event);if(event.type==='win'){if(killVisual)pendingWin=true;else showEnd();}
   if(event.type==='sabotage'||event.type==='repair')renderMission();
   if(event.type==='repair'&&event.done&&currentTask==='repair')repairDone(modalId);
-  if(event.type==='death'){if(killVisual)pendingDeath=true;else{if(game.phase==='playing')closeModal();renderMission();toast('You were eliminated. You are a ghost now — finish your tasks to help the crew win.');beep('report');}}
+  if(event.type==='death'){if(killVisual)pendingDeath=true;else{if(game.phase==='playing')closeModal();renderMission();toast(ghostNotice());beep('report');}}
  }
  renderer.draw(dt);renderCameraViews(dt);uiClock+=dt;if(uiClock>.12){uiClock=0;updateControls();}requestAnimationFrame(frame);
 }

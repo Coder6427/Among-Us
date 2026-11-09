@@ -47,7 +47,7 @@ The hamster has a round face, two eyes, cheek pouches, whiskers, paws, and a cle
 - Choose a callsign, suit color, hat, accessory, pet, and PC or Mobile controls.
 - Create a **public** room to list it in the room browser, or uncheck the public option for a **private** code-only room.
 - Copy the invite link by clicking the six-character room code. Friends can use the link or enter the code on the same website.
-- Online play needs **4–15 real players**. Everyone presses Ready, then the host presses Start. Two impostors need at least 7 players, and three need 9.
+- Online rounds support **4–15 players, including bots**. The host can use **Add bot** to fill empty seats and remove bots with the × on their cards. If the lobby fills, a friend who joins takes a bot’s seat. Human guests press Ready before the host starts. Two impostors need at least 7 players, and three need 9.
 - The host sets the map, player limit, impostor count, movement speed, crew vision, kill cooldown, task count, Engineer and Scientist counts, discussion and voting time, emergency meetings, and public/private status. The combined specialist count cannot exceed the available crewmate slots. Changes clear readiness. Roles are assigned randomly by the server.
 - Players can chat in the lobby and in meetings. Use the visible Send button or press Enter in the message field. Living players cannot send chat during ordinary play. Eliminated players have a separate ghost channel that living players never receive.
 - The host can remove lobby players. If the host disconnects, control transfers to a connected crewmate. A lost connection can resume the same player for 30 seconds; after that, the abandoned character leaves the round. Rejoining is not supported after a server restart.
@@ -57,7 +57,9 @@ The hamster has a round face, two eyes, cheek pouches, whiskers, paws, and a cle
 
 WASD or arrow keys move. Click inside your view circle to walk. On mobile, use the thumb joystick. Tap an assigned task or a map objective for automatic navigation.
 
-**E / Space:** use tasks, repair panels, the emergency button, or Security. **Q:** kill as an impostor. **R:** report a nearby visible body. **V:** enter/exit vents. **B:** Scientist vitals. **F:** sabotage choices. **M:** ship map. Use Escape to close ordinary panels.
+**E / Space** uses tasks, repair panels, the emergency button, or Security. **Q** attacks as an impostor, **R** reports a nearby body, and **V** enters or exits vents. **B** opens the current role ability. **F** opens sabotage and **M** opens the ship map. Use Escape to close panels.
+
+The first eliminated crewmate becomes the **Guardian Angel**. Select a nearby player with Protect to block one kill for up to 12 seconds. Protect recharges after 30 seconds. Ghosts see other moving ghosts. With three impostors, exactly one is the **Shapeshifter**. Shift copies a living player’s appearance for up to 16 seconds. Unshift can end it early. The next shift is available 30 seconds after reverting.
 
 Both The Skeld and Aurora Station are available. Each has its own rooms, task locations, vents, repair systems, and exactly three fixed Security cameras. A larger high-contrast tracking arrow shows the destination and remaining distance for repairs and selected tasks. The server limits received player positions and camera feeds by visibility and walls. Roles and impostor teammates are private. Vitals report actual deaths; normal living-player rosters do not reveal unreported remote eliminations.
 
@@ -85,7 +87,7 @@ Open `http://localhost:3000`. For a local multiplayer check, use several browser
 
 `GET /health` returns JSON with `ok: true`. The server binds to `0.0.0.0` and Render's `PORT` automatically. Only the two public HTML files and the health endpoint are served; source files and session tokens are not exposed as website routes. Messages have size and frequency limits, names and chat render as text, and every action uses the identity of its own socket.
 
-Validation passed 18 multiplayer rule and network checks, including a real fifteen-player WebSocket room alongside a separate private room and synchronized movement. A bundled-client test also passed room creation, role reveal, task completion, cameras, vitals, vent travel, light repairs, mobile controls, meetings, chat, voting, kill scenes, reconnection, and returning to the lobby. The 76 single-player checks are retained in the development source. Additional DOM tests cover Chinese/Japanese catalog completeness, live round and mobile switching, all tasks and repairs, protected names and chat, and IME composition. Native game-art renders were visually checked. The in-app browser preview could not connect in the authoring environment, so a visual browser pass and a deployment on your Render account are still required. No claim of live worldwide deployment or unlimited server capacity is made.
+The automated suite covers a real fifteen-player WebSocket room, solo online rooms with bots, player movement, lobby controls, meetings, kill and shield validation, disguise privacy, and reconnection. The bundled client checks also exercise tasks, repairs, cameras, vitals, vents, mobile controls, language switching, and chat input. The map and transformation frames were checked with native canvas renders. The in-app browser preview was unavailable during this update.
 
 ## Operations
 

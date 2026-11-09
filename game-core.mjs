@@ -157,9 +157,14 @@ export const ROLE_INFO={
  crew:{name:'Crewmate',color:'#78ddc1',description:'Complete your tasks. Watch your crew. Find the impostor.'},
  impostor:{name:'Impostor',color:'#f37988',description:'Blend in, sabotage the ship, and leave no witnesses.'},
  scientist:{name:'Scientist',color:'#81c5f4',description:'You are on the crew. Use B to check live vitals. Tasks recharge your tablet.'},
- engineer:{name:'Engineer',color:'#edbc77',description:'You are on the crew. Use V near a vent to travel. Vents recharge every 25 seconds.'}
+ engineer:{name:'Engineer',color:'#edbc77',description:'You are on the crew. Use V near a vent to travel. Vents recharge every 25 seconds.'},
+ guardian:{name:'Guardian Angel',color:'#9ce8ff',description:'Protect a nearby crewmate from one kill for 12 seconds.'},
+ shapeshifter:{name:'Shapeshifter',color:'#ff7589',description:'Copy another living player’s appearance for 16 seconds. You are on the impostor team.'}
 };
+export const ROLE_TIMING={protectRange:150,shield:12,protectCooldown:30,shift:16,shiftCooldown:30,morph:1.1,blockedKillCooldown:8};
+export const isImpostorRole=role=>role==='impostor'||role==='shapeshifter';
 export function shuffled(items,random=Math.random){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
+export function botProfile(random,speed=1){return {speed:(83+random()*40)*speed,caution:.25+random()*.7,social:random(),repair:random()>.25,reportDelay:1.4+random()*4.5,dwell:7+random()*6,roaming:.08+random()*.2,watchfulness:.15+random()*.7};}
 export let ROOMS = [
  {id:'upper',name:'Upper Engine',x:110,y:130,w:240,h:215,tint:'#394254'},
  {id:'cafeteria',name:'Cafeteria',x:535,y:100,w:390,h:245,tint:'#334758'},
@@ -275,7 +280,7 @@ export class Game {
   const palette=randomize?shuffled(COLORS.filter((_,i)=>i!==color),this.random):COLORS.filter((_,i)=>i!==color);
   const available=NAMES.filter(n=>n.toLowerCase()!==String(name).toLowerCase());const names=(randomize?shuffled(available,this.random):available).slice(0,this.config.players-1);
   names.forEach((n,i)=>{
-   const rand=this.random,profile={speed:83+rand()*40,caution:.25+rand()*.7,social:rand(),repair:rand()>.25,reportDelay:1.4+rand()*4.5,dwell:7+rand()*6,roaming:.08+rand()*.2,watchfulness:.15+rand()*.7};
+   const rand=this.random,profile=botProfile(rand);
    const taskOrder=shuffled(this.map.tasks,rand).slice(0,8+Math.floor(rand()*3));
    const columns=5,rows=Math.ceil((this.config.players-1)/columns),x=cafe.x+cafe.w*(.13+(i%columns)*.18),y=cafe.y+cafe.h*(.2+Math.floor(i/columns)*(.5/Math.max(1,rows-1)));
    this.crew.push({id:i+1,name:n,color:palette[i],x:x+(randomize?rand()*16-8:0),y:y+(randomize?rand()*14-7:0),alive:true,inVent:false,dir:rand()>.5?1:-1,path:[],steps:0,wait:randomize?rand()*3:1+i*.6,suspicion:0,imp:false,role:'crew',profile,taskOrder,completedTasks:new Set(),ghostWork:0,ventCooldown:10+rand()*25,huntAt:0,memory:new Map(),observeAt:0,hesitate:0,nextPauseAt:8+rand()*10,cameraUntil:0,hat:randomize?HATS[Math.floor(rand()*HATS.length)].id:'none',accessory:randomize?ACCESSORIES[Math.floor(rand()*ACCESSORIES.length)].id:'none'});
@@ -303,14 +308,18 @@ export class Game {
   const p=c.companion;if(!p||!p.alive)return;p.alive=false;p.deathAt=this.time;p.trail=[];
  }
  getPets(){
-  return this.crew.filter(c=>!c.inVent&&c.companion&&(c.alive&&c.companion.alive||!c.companion.alive&&this.time-c.companion.deathAt<2.2)).map(c=>{const p=c.companion;return {ownerId:c.id,type:p.type,color:p.color,x:p.x,y:p.y,dir:p.dir,steps:p.steps,alive:p.alive,deathProgress:p.alive?0:Math.min(1,(this.time-p.deathAt)/2.2)};});
+  return this.crew.filter(c=>!c.inVent&&!c.disguise&&c.companion&&(c.alive&&c.companion.alive||!c.companion.alive&&this.time-c.companion.deathAt<2.2)).map(c=>{const p=c.companion;return {ownerId:c.id,type:p.type,color:p.color,x:p.x,y:p.y,dir:p.dir,steps:p.steps,alive:p.alive,deathProgress:p.alive?0:Math.min(1,(this.time-p.deathAt)/2.2)};});
  }
  start(role,name,color,{intro=false,...options}={}){
   this.configure(options);
-  this.requestedRole=role;this.role=role==='random'?['crew','scientist','engineer','impostor'][Math.floor(this.random()*4)]:ROLE_INFO[role]?role:'crew';
+  this.requestedRole=role;
+  const roles=['crew','scientist','engineer','impostor'];if(this.config.impostors===3)roles.push('shapeshifter');
+  this.role=role==='random'?roles[Math.floor(this.random()*roles.length)]:roles.includes(role)?role:role==='shapeshifter'?'impostor':'crew';
   this.resetCrew(name,color,true);this.player.role=this.role;this.phase=intro?'intro':'playing';this.introElapsed=0;this.time=0;this.bodies=[];this.events=[];this.logs=[];this.tasks=assignTasks(this.random,6,this.map.tasks);this.killCooldown=15;this.sabotageCooldown=15;this.lights=0;this.crewProgress=0;this.lastMeeting=-35;this.emergencies=1;this.meetings=0;this.kills=0;this.reported=new Set();
   const candidates=shuffled(this.crew.slice(1),this.random),impostors=this.isImpostor?[this.player,...candidates.slice(0,this.config.impostors-1)]:candidates.slice(0,this.config.impostors);
   this.impIds=new Set(impostors.map(c=>c.id));this.impId=impostors[0].id;for(const c of impostors){c.imp=true;c.role='impostor';c.killCooldown=27+this.random()*15;}
+  if(this.config.impostors===3){const shifter=this.role==='shapeshifter'?this.player:impostors.find(c=>c!==this.player);shifter.role='shapeshifter';}
+  this.guardianId=null;this.morphSerial=0;
   this.outcome=null;this.meeting=null;this.autoTarget=null;
   const specialists=shuffled(this.crew.slice(1).filter(c=>!c.imp),this.random);if(specialists[0])specialists[0].role='engineer';if(specialists[1])specialists[1].role='scientist';
   specialists.slice(0,2).forEach(c=>c.profile.repair=true);
@@ -319,20 +328,71 @@ export class Game {
  }
  emit(type,data={}){this.events.push({type,...data});}
  drain(){return this.events.splice(0);}
- get alive(){return this.crew.filter(c=>c.alive);}
+ becomeGhost(c){
+  c.alive=false;c.ghost=true;c.path=[];c.wait=0;c.inVent=false;c.shieldUntil=0;c.cameraUntil=0;
+  this.endShift(c,false);this.eliminatePet(c);
+  if(!c.imp&&this.guardianId==null){
+   this.guardianId=c.id;c.role='guardian';c.protectReadyAt=this.time;
+   if(c===this.player)this.role='guardian';
+  }
+ }
+ protect(c,target){
+  if(this.phase!=='playing'||c.role!=='guardian'||!c.ghost||c.left||this.time<(c.protectReadyAt||0))return false;
+  if(!target?.alive||target.inVent||target.left||dist(c,target)>ROLE_TIMING.protectRange)return false;
+  target.shieldUntil=this.time+ROLE_TIMING.shield;c.protectReadyAt=this.time+ROLE_TIMING.protectCooldown;return true;
+ }
+ breakShield(target){
+  if(!(target.shieldUntil>this.time))return false;
+  target.shieldUntil=0;target.shieldBreakAt=this.time;return true;
+ }
+ shift(c,target){
+  if(this.phase!=='playing'||c.role!=='shapeshifter'||!c.alive||c.left||c.inVent||c.disguise)return false;
+  if(this.time<(c.shiftReadyAt||0)||this.morphProgress(c)!==null||!target?.alive||target.left||target===c)return false;
+  const {name,color,hat,accessory}=target;
+  c.disguise={name,color,hat,accessory};c.disguiseId='echo-'+(this.morphSerial=(this.morphSerial||0)+1);
+  c.shiftUntil=this.time+ROLE_TIMING.shift;c.morphAt=this.time;c.path=[];return true;
+ }
+ endShift(c,animate=true){
+  if(!c.disguise)return false;
+  c.disguise=null;c.disguiseId=null;c.shiftUntil=0;c.shiftReadyAt=this.time+ROLE_TIMING.shiftCooldown;c.morphAt=animate?this.time:null;c.path=[];return true;
+ }
+ morphProgress(c){return c.morphAt!=null&&this.time-c.morphAt<ROLE_TIMING.morph?(this.time-c.morphAt)/ROLE_TIMING.morph:null;}
+ updateRole(c){if(c.disguise&&this.time>=c.shiftUntil)this.endShift(c,!c.inVent);}
+ clearRoleEffects(){for(const c of this.crew){this.endShift(c,false);c.morphAt=null;c.shieldUntil=0;c.shieldBreakAt=null;}}
+ stepGhost(c,dt){
+  if(c.wait>0){c.wait-=dt;return;}
+  if(!c.path.length){
+   const task=!c.imp&&c.taskOrder?.find(t=>!c.completedTasks.has(t.id));
+   const room=this.randomRoom();c.path=[task&&dist(c,task)>40?task:{x:room.x+room.w*(.2+this.random()*.6),y:room.y+room.h*(.2+this.random()*.6)}];
+  }
+  this.follow(c,c.profile.speed,dt);
+ }
+ get alive(){return this.crew.filter(c=>c.alive&&!c.left);}
  get completed(){return this.tasks.filter(t=>t.done).length;}
- get isImpostor(){return this.role==='impostor';}
+ get isImpostor(){return isImpostorRole(this.role);}
  get isCrew(){return !this.isImpostor;}
  get botKillCooldown(){const bots=this.crew.filter(c=>c.id!==0&&c.imp&&c.alive);return bots.length?Math.min(...bots.map(c=>c.killCooldown??30)):this._botCooldownFallback??30;}
  set botKillCooldown(value){this._botCooldownFallback=value;for(const c of this.crew||[])if(c.id!==0&&c.imp)c.killCooldown=value;}
  get introStage(){return this.phase!=='intro'?'done':this.introElapsed<3?'black':'reveal';}
  get canVent(){return this.isImpostor||this.role==='engineer';}
- get visionRadius(){return this.player.ghost?280:this.role==='impostor'?320:this.lights?54:270;}
+ get visionRadius(){return this.player.ghost?280:this.isImpostor?320:this.lights?54:270;}
  get repairTargets(){const s=this.sabotageState;return s?this.map.systems[s.kind].terminals.filter(t=>!s.repaired.has(t.id)):[];}
  get repairTarget(){return [...this.repairTargets].sort((a,b)=>dist(a,this.player)-dist(b,this.player))[0];}
- goTo(x,y){if(this.player.inVent){this.emit('toast',{message:'Exit the vent before walking.'});return false;}if(!this.walkable(x,y,2))return false;this.player.path=this.pathfind(this.player,{x,y});this.autoTarget={x,y};return !!this.player.path.length;}
+ goTo(x,y){
+  if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+  const player=this.player;
+  if(player.inVent){this.emit('toast',{message:'Exit the vent before walking.'});return false;}
+  if(player.ghost){
+   if(x<30||y<30||x>this.map.world.w-30||y>this.map.world.h-30)return false;
+   player.path=[{x,y}];
+  }else{
+   if(!this.walkable(x,y,2))return false;
+   player.path=this.pathfind(player,{x,y});
+  }
+  this.autoTarget={x,y};return !!player.path.length;
+ }
  move(c,dx,dy){
-  if(c.inVent)return;
+  if(c.inVent||c.morphAt!=null&&this.time-c.morphAt<ROLE_TIMING.morph)return;
   if(c.ghost){c.x=Math.max(30,Math.min(this.map.world.w-30,c.x+dx));c.y=Math.max(30,Math.min(this.map.world.h-30,c.y+dy));}
   else{if(this.walkable(c.x+dx,c.y))c.x+=dx;if(this.walkable(c.x,c.y+dy))c.y+=dy;}
   if(Math.abs(dx)>.1)c.dir=dx>0?1:-1;c.steps+=Math.hypot(dx,dy)*.13;
@@ -353,12 +413,20 @@ export class Game {
   else this.vitalsBattery=Math.min(10,this.vitalsBattery+dt*.35);
   if(this.sabotageState?.remaining!=null){this.sabotageState.remaining-=dt;if(this.sabotageState.remaining<=0){this.finish('impostor',this.sabotageState.kind==='reactor'?'The reactor melted down.':'The ship ran out of oxygen.');return;}}
   if(!this.sabotageState)this.botSabotageCooldown-=dt;
+  for(const c of this.crew)this.updateRole(c);
   const p=this.player;if(!this.camerasOpen){if(input.x||input.y){p.path=[];this.autoTarget=null;const n=Math.max(1,Math.hypot(input.x,input.y));this.move(p,input.x/n*this.settings.speed*dt,input.y/n*this.settings.speed*dt);}else this.follow(p,this.settings.speed,dt);}
   for(const c of this.crew.slice(1)){
    if(c.imp)c.killCooldown-=dt;
    c.ventCooldown=Math.max(0,c.ventCooldown-dt);
-   if(!c.alive){if(!c.imp&&c.completedTasks.size<c.taskOrder.length){c.ghostWork+=dt;if(c.ghostWork>16){c.ghostWork=0;const next=c.taskOrder.find(t=>!c.completedTasks.has(t.id));if(next)c.completedTasks.add(next.id);}}continue;}
+   if(!c.alive){
+    if(c.ghost)this.stepGhost(c,dt);
+    if(!c.imp&&c.completedTasks.size<c.taskOrder.length){c.ghostWork+=dt;if(c.ghostWork>16){c.ghostWork=0;const next=c.taskOrder.find(t=>!c.completedTasks.has(t.id));if(next)c.completedTasks.add(next.id);}}
+    if(c.role==='guardian'&&c.protectReadyAt<=this.time&&p.alive&&!p.imp&&dist(c,p)<100)this.protect(c,p);
+    continue;
+   }
    this.updateVent(c,dt);if(c.inVent)continue;
+   this.tryBotShift(c);
+   if(this.morphProgress(c)!==null)continue;
    this.observeBot(c);
    if(this.updateBotCameras(c))continue;
    const repairing=this.botRepair(c,dt);
@@ -366,7 +434,7 @@ export class Game {
    if(c.imp&&c.killCooldown<=0){
     let victims=this.alive.filter(v=>!v.imp&&!v.inVent&&dist(c,v)<68&&this.lineOfSight(c,v));
     let target=victims.sort((a,b)=>dist(c,a)-dist(c,b))[0];
-    if(target){const watchers=this.alive.filter(w=>!w.imp&&!w.inVent&&w.id!==target.id&&dist(w,c)<(this.lights?65:190)&&this.lineOfSight(w,c));if(watchers.length<Math.max(1,Math.round((1-c.profile.caution)*3))||c.killCooldown< -30){this.eliminate(c,target);c.killCooldown=22+this.random()*18;c.huntAt=this.time+4+this.random()*8;if(this.random()<.55)this.botVent(c);}}
+    if(target){const watchers=this.alive.filter(w=>!w.imp&&!w.inVent&&w.id!==target.id&&dist(w,c)<(this.lights?65:190)&&this.lineOfSight(w,c));if(watchers.length<Math.max(1,Math.round((1-c.profile.caution)*3))||c.killCooldown< -30){const killed=this.eliminate(c,target);c.killCooldown=killed?22+this.random()*18:ROLE_TIMING.blockedKillCooldown;c.huntAt=this.time+4+this.random()*8;if(killed&&this.random()<.55)this.botVent(c);}}
     else if(c.killCooldown< -3&&this.time>=c.huntAt){const candidates=[...c.memory.values()].filter(m=>!this.crew[m.id].imp&&this.crew[m.id].alive&&this.time-m.at<12);const t=shuffled(candidates,this.random).sort((a,b)=>dist(c,a)-dist(c,b))[0];if(t){c.path=this.pathfind(c,t);c.goalTask=null;c.workingTask=null;c.wait=0;}c.huntAt=this.time+2+this.random()*4;}
    }
    if(!c.inVent&&this.time-this.lastMeeting>15){
@@ -401,8 +469,15 @@ export class Game {
    c.path=this.pathfind(c,target);c.goalTask=null;
   }
  }
+ tryBotShift(c){
+  if(c.role!=='shapeshifter'||c.disguise||this.time<(c.shiftReadyAt||12)||this.time<(c.nextShiftCheck||0))return;
+  c.nextShiftCheck=this.time+4+this.random()*6;
+  const crew=this.alive.filter(a=>!a.imp&&!a.inVent);
+  if(crew.some(a=>dist(c,a)<195&&this.lineOfSight(c,a)))return;
+  const target=crew[Math.floor(this.random()*crew.length)];if(target)this.shift(c,target);
+ }
  botVent(c,target=null){
-  if(!c.alive||!['engineer','impostor'].includes(c.role)||c.ventCooldown>0)return false;
+  if(!c.alive||!(c.role==='engineer'||c.imp)||c.ventCooldown>0)return false;
   const entry=this.map.vents.find(v=>dist(v,c)<78);if(!entry||c.inVent)return false;
   const exits=this.map.vents.filter(v=>v!==entry),exit=target?exits.sort((a,b)=>dist(a,target)-dist(b,target))[0]:exits[Math.floor(this.random()*exits.length)];
   this.enterActorVent(c,this.map.vents.indexOf(entry));c.ventDestination=this.map.vents.indexOf(exit);c.ventTravel=.65;c.ventExitIn=1.5+this.random()*3;c.resumeTarget=target?{...target}:null;c.workingTask=null;if(!target)c.goalTask=null;return true;
@@ -411,7 +486,7 @@ export class Game {
   for(const c of this.alive.filter(c=>!c.inVent&&c.id!==subject.id&&dist(c,position)<(this.lights?60:160)&&this.lineOfSight(c,position)))this.logs.push({observer:c.id,suspect:subject.id,at:this.time,room:this.roomAt(position.x,position.y)?.name||'the hallway',certain:false,action:'vent'});
  }
  enterActorVent(c,index){
-  const v=this.map.vents[index];if(!v||!c.alive||c.inVent||!['engineer','impostor'].includes(c.role)||dist(c,v)>80)return false;
+  const v=this.map.vents[index];if(!v||!c.alive||c.inVent||!(c.role==='engineer'||isImpostorRole(c.role))||dist(c,v)>80||this.morphProgress(c)!==null)return false;
   this.recordVent(c,v);c.inVent=true;c.ventIndex=index;c.ventDestination=index;c.ventTravel=0;c.ventExitIn=2;c.ventRemaining=c.role==='engineer'?8:Infinity;c.x=v.x;c.y=v.y;c.path=[];c.cameraUntil=0;c.bodyInterest=null;
   if(c.id===0){this.closeCameras();this.closeVitals();this.autoTarget=null;this.emit('enteredVent');}return true;
  }
@@ -435,7 +510,8 @@ export class Game {
  observeBot(c){
   if(this.time<c.observeAt)return;c.observeAt=this.time+.35+this.random()*.55;
   for(const target of this.alive)if(target.id!==c.id&&!target.inVent&&dist(c,target)<(this.lights&&!c.imp?75:310)&&this.lineOfSight(c,target))c.memory.set(target.id,{id:target.id,x:target.x,y:target.y,at:this.time});
-  for(const [id,m] of c.memory)if(this.time-m.at>25||!this.crew[id].alive)c.memory.delete(id);
+  const livingIds=new Set(this.alive.map(a=>a.id));
+  for(const [id,m] of c.memory)if(this.time-m.at>25||!livingIds.has(id))c.memory.delete(id);
  }
  cameraCovers(camera,point){return !!camera&&!point.inVent&&Math.abs(camera.x-point.x)<=camera.width/2&&Math.abs(camera.y-point.y)<=camera.height/2&&this.lineOfSight(camera,point);}
  isCameraViewer(c){return this.phase==='playing'&&!!c?.alive&&!c.inVent&&this.sabotageState?.kind!=='comms'&&dist(c,this.map.cameraConsole)<=95&&(c.id===0?this.camerasOpen:c.cameraUntil>this.time)&&this.lineOfSight(c,this.map.cameraConsole);}
@@ -448,13 +524,13 @@ export class Game {
  closeCameras(notify=false){const wasOpen=this.camerasOpen;this.camerasOpen=false;if(wasOpen&&notify)this.emit('camerasClosed');}
  getCameraFeed(index,viewerId=0){
   if(!Number.isInteger(index)||!this.map.cameras[index])return null;const camera=this.map.cameras[index],online=this.isCameraViewer(this.crew[viewerId]);
-  return {camera,online,actors:online?this.alive.filter(c=>!c.inVent&&this.cameraCovers(camera,c)).map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,x:c.x,y:c.y,dir:c.dir,steps:c.steps,alive:true,imp:this.isImpostor&&c.imp})):[],pets:online?this.getPets().filter(p=>this.cameraCovers(camera,p)):[],bodies:online?this.bodies.filter(b=>!this.reported.has(b.id)&&this.cameraCovers(camera,b)).map(({id,x,y,color,at})=>({id,x,y,color,at})):[],incident:online&&this.cameraIncidents.some(i=>i.cameraId===index&&this.time-i.at<1.1)};
+  return {camera,online,actors:online?this.alive.filter(c=>!c.inVent&&this.cameraCovers(camera,c)).map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,x:c.x,y:c.y,dir:c.dir,steps:c.steps,alive:true,imp:this.isImpostor&&c.imp,disguise:c.disguise,morphAt:c.morphAt,shieldBreakAt:c.shieldBreakAt})):[],pets:online?this.getPets().filter(p=>this.cameraCovers(camera,p)):[],bodies:online?this.bodies.filter(b=>!this.reported.has(b.id)&&this.cameraCovers(camera,b)).map(({id,x,y,color,at})=>({id,x,y,color,at})):[],incident:online&&this.cameraIncidents.some(i=>i.cameraId===index&&this.time-i.at<1.1)};
  }
  updateBotCameras(c){
   if(c.cameraUntil<=this.time)return false;
   if(!this.isCameraViewer(c)){c.cameraUntil=0;return false;}
   for(const target of this.alive)if(target.id!==c.id&&!target.inVent&&this.map.cameras.some(cam=>this.cameraCovers(cam,target)))c.memory.set(target.id,{id:target.id,x:target.x,y:target.y,at:this.time});
-  if(c.imp&&c.killCooldown<=0&&[...c.memory.values()].some(m=>!this.crew[m.id].imp&&this.time-m.at<1)){c.cameraUntil=0;c.huntAt=0;return false;}
+  if(c.imp&&c.killCooldown<=0&&[...c.memory.values()].some(m=>this.alive.some(a=>a.id===m.id&&!a.imp)&&this.time-m.at<1)){c.cameraUntil=0;c.huntAt=0;return false;}
   const body=!c.imp&&this.bodies.find(b=>!this.reported.has(b.id)&&this.map.cameras.some(cam=>this.cameraCovers(cam,b)));
   if(body){c.cameraUntil=0;c.path=this.pathfind(c,body);c.goalTask=null;c.workingTask=null;c.wait=0;return false;}
   return true;
@@ -468,21 +544,27 @@ export class Game {
  closeVitals(notify=false){const wasOpen=this.vitalsOpen;this.vitalsOpen=false;if(wasOpen&&notify)this.emit('vitalsClosed');}
  getVitals(){if(!this.vitalsOpen||this.role!=='scientist'||this.sabotageState?.kind==='comms')return [];return this.crew.map(c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,alive:c.alive,bpm:c.alive?Math.round(68+c.id*2+Math.sin(this.time*1.6+c.id)*5):0}));}
  eliminate(killer,victim){
-  if(!victim?.alive||victim.inVent||killer.inVent||killer.imp&&victim.imp)return false;victim.alive=false;victim.path=[];victim.ghost=victim.id===0;this.eliminatePet(victim);
+  if(!victim?.alive||victim.inVent||killer.inVent||killer.imp&&victim.imp||this.morphProgress(killer)!==null)return false;
+  if(this.breakShield(victim)){
+   if(killer===this.player)this.emit('toast',{message:'A Guardian Angel blocked your kill.'});
+   if(victim===this.player)this.emit('toast',{message:'A Guardian Angel saved you!'});
+   return false;
+  }
+  this.becomeGhost(victim);
   this.bodies.push({id:victim.id,x:victim.x,y:victim.y,color:victim.color,at:this.time,killer:killer.id});
   const witnessRange=this.lights?65:210;
   const witnesses=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,victim)<witnessRange&&this.lineOfSight(c,victim));
-  for(const w of witnesses){w.witness=killer.id;w.urgentReportAt=this.time+.35+this.random()*.7;killer.suspicion+=4;this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(victim.x,victim.y)?.name||'the hallway',certain:true});}
+  for(const w of witnesses){w.urgentReportAt=this.time+.35+this.random()*.7;if(killer.disguise)continue;w.witness=killer.id;killer.suspicion+=4;this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(victim.x,victim.y)?.name||'the hallway',certain:true});}
   for(const camera of this.map.cameras)if(this.cameraCovers(camera,killer)&&this.cameraCovers(camera,victim)){
    this.cameraIncidents.push({cameraId:camera.id,at:this.time});
-   for(const w of this.alive.filter(w=>!w.imp&&this.isCameraViewer(w)&&!witnesses.includes(w)))this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:camera.name,certain:true,via:'camera',cameraId:camera.id});
+   if(!killer.disguise)for(const w of this.alive.filter(w=>!w.imp&&this.isCameraViewer(w)&&!witnesses.includes(w)))this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:camera.name,certain:true,via:'camera',cameraId:camera.id});
   }
   this.cameraIncidents=this.cameraIncidents.filter(i=>this.time-i.at<5);
-  if(!witnesses.length){const nearby=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,killer)<350&&this.lineOfSight(c,killer));for(const w of nearby)this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(killer.x,killer.y)?.name||'the hallway',certain:false});}
-  if(killer.id===0||victim.id===0){const sprite=c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,pet:c.pet});this.emit('killAnimation',{killer:sprite(killer),victim:sprite(victim),style:['knife','chomp','blaster'][Math.floor(this.random()*3)]});}
+  if(!killer.disguise&&!witnesses.length){const nearby=this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,killer)<350&&this.lineOfSight(c,killer));for(const w of nearby)this.logs.push({observer:w.id,suspect:killer.id,at:this.time,room:this.roomAt(killer.x,killer.y)?.name||'the hallway',certain:false});}
+  if(killer.id===0||victim.id===0){const sprite=c=>({id:c.id,name:c.name,color:c.color,hat:c.hat,accessory:c.accessory,pet:c.pet});this.emit('killAnimation',{killer:killer.id!==0&&killer.disguise?{...sprite(killer),...killer.disguise,pet:'none'}:sprite(killer),victim:sprite(victim),style:['knife','chomp','blaster'][Math.floor(this.random()*3)]});}
   if(killer.id===0){this.kills++;this.emit('toast',{message:`${victim.name} eliminated. Leave before someone finds the body.`});}
   if(victim.id===0)this.emit('death');
-  this.checkWin();
+  this.checkWin();return true;
  }
  nearestTask(){return this.tasks.filter(t=>!t.done).sort((a,b)=>dist(this.player,a)-dist(this.player,b))[0];}
  canUse(){
@@ -513,6 +595,7 @@ export class Game {
  }
  callMeeting(reporter,body){
   if(this.phase!=='playing')return false;this.closeVitals();this.closeCameras();
+  this.clearRoleEffects();
   for(const c of this.crew){if(c.inVent&&c.role==='engineer'){if(c.id===0)this.ventCooldown=25;else c.ventCooldown=25;}c.inVent=false;c.ventTravel=0;c.cameraUntil=0;c.goalActivity=null;if(c.companion&&!c.companion.alive)c.companion.deathAt=-Infinity;}
   this.phase='meeting';this.meetings++;this.player.path=[];
   if(body)this.reported.add(body.id);
@@ -559,7 +642,7 @@ export class Game {
   }
   const sorted=Object.entries(votes).sort((a,b)=>b[1]-a[1]);
   let ejected=null,reason='No one was ejected. (Skipped)';
-  if(sorted.length&&Number(sorted[0][0])>=0){if(sorted[1]&&sorted[0][1]===sorted[1][1])reason='No one was ejected. (Tie)';else{ejected=Number(sorted[0][0]);const c=this.crew[ejected];c.alive=false;c.ghost=c.id===0;c.path=[];this.eliminatePet(c);reason=`${c.name} was ${c.imp?'an Impostor.':'not an Impostor.'}`;}}
+  if(sorted.length&&Number(sorted[0][0])>=0){if(sorted[1]&&sorted[0][1]===sorted[1][1])reason='No one was ejected. (Tie)';else{ejected=Number(sorted[0][0]);const c=this.crew[ejected];this.becomeGhost(c);reason=`${c.name} was ${c.imp?'an Impostor.':'not an Impostor.'}`;}}
   this.meeting.result={ejected,reason,votes};this.emit('voteResult',{...this.meeting.result});return this.meeting.result;
  }
  continueMeeting(){
@@ -570,7 +653,7 @@ export class Game {
   this.meeting=null;this.checkWin();
  }
  killTarget(){return this.player.inVent?undefined:this.alive.filter(c=>!c.imp&&!c.inVent&&dist(c,this.player)<82&&this.lineOfSight(c,this.player)).sort((a,b)=>dist(a,this.player)-dist(b,this.player))[0];}
- kill(){if(this.phase!=='playing'||this.role!=='impostor'||!this.player.alive||this.player.inVent||this.killCooldown>0)return false;const t=this.killTarget();if(!t)return false;this.eliminate(this.player,t);this.killCooldown=22;return true;}
+ kill(){if(this.phase!=='playing'||!this.isImpostor||!this.player.alive||this.player.inVent||this.killCooldown>0||this.morphProgress(this.player)!==null)return false;const t=this.killTarget();if(!t)return false;const killed=this.eliminate(this.player,t);this.killCooldown=killed?22:ROLE_TIMING.blockedKillCooldown;return killed;}
  vent(){
   if(this.phase!=='playing'||!this.canVent||!this.player.alive)return false;
   if(this.player.inVent)return this.exitActorVent(this.player);
@@ -578,7 +661,7 @@ export class Game {
   const i=this.map.vents.findIndex(v=>dist(v,this.player)<80);if(i<0){this.emit('toast',{message:'Get closer to a floor vent to use it.'});return false;}
   return this.enterActorVent(this.player,i);
  }
- sabotage(kind='lights'){if(this.phase!=='playing'||this.role!=='impostor'||!this.player.alive||this.sabotageCooldown>0||this.sabotageState)return false;return this.activateSabotage(kind);}
+ sabotage(kind='lights'){if(this.phase!=='playing'||!this.isImpostor||!this.player.alive||this.sabotageCooldown>0||this.sabotageState)return false;return this.activateSabotage(kind);}
  activateSabotage(kind){
   const system=this.map.systems[kind];if(!system||this.sabotageState||this.phase!=='playing')return false;
   this.sabotageState={kind,remaining:system.duration??null,repaired:new Set(),switches:[false,true,false,false,true],codes:Object.fromEntries(system.terminals.map(t=>[t.id,String(10000+Math.floor(this.random()*90000))])),frequency:62,botProgress:{}};
@@ -603,8 +686,8 @@ export class Game {
   this.emit('repair',{done});this.emit('toast',{message:done?'Systems restored. Nice work, crew.':'Panel restored. Head to the other marked panel.'});
  }
  botRepair(c,dt){
-  if(!this.isImpostor||c.imp||!this.sabotageState||!c.profile.repair&&this.alive.length>3)return false;
-  const targets=this.repairTargets,t=targets[c.id%targets.length];if(!t)return false;
+  if(!(this.network||this.isImpostor)||c.imp||!this.sabotageState||!c.profile.repair&&this.alive.length>3)return false;
+  const targets=this.repairTargets,t=targets[Math.abs(c.id)%targets.length];if(!t)return false;
   if(c.repairTarget!==t.id){c.repairTarget=t.id;c.path=this.pathfind(c,t);c.wait=0;c.goalTask=null;c.workingTask=null;}
   if(dist(c,t)>48){if(!c.path.length)c.path=this.pathfind(c,t);this.follow(c,110,dt);}
   else{const s=this.sabotageState;s.botProgress[t.id]=(s.botProgress[t.id]||0)+dt;if(s.botProgress[t.id]>=9)this.completeRepair(t.id);}

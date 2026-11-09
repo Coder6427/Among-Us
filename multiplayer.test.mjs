@@ -6,12 +6,87 @@ import {createGameServer} from './server.mjs';
 import {MAPS,dist} from './game-core.mjs';
 function crew(count=8,config={}){const hub=new Hub(),members=[],mail=[];for(let i=0;i<count;i++){mail[i]=[];members.push(hub.connect(m=>mail[i].push(m)));}hub.command(members[0],'create',{profile:{name:'Host',color:0,pet:'mini'},settings:config});const room=members[0].room;for(let i=1;i<count;i++)hub.command(members[i],'join',{code:room.code,profile:{name:'Pilot '+i,color:i,pet:['mini','stickman','ufo','cyclops'][i%4]}});return {hub,members,room,mail};}
 function start(env){for(const m of env.members)env.hub.command(m,'ready',{ready:true});env.hub.command(env.members[0],'start');for(let i=0;i<65;i++)env.room.tick(.1);assert.equal(env.room.phase,'playing');return env;}
+test('A solo host can start with bots that yield lobby seats, finish tasks, and vote',()=>{
+ const env=crew(1,{maxPlayers:4,discussion:5,voting:10,taskCount:4});
+ const {hub,room,members:[host]}=env;
+ for(let i=0;i<3;i++)hub.command(host,'addBot');
+ const guest=hub.connect(()=>{});
+ hub.command(guest,'join',{code:room.code,profile:{name:'Guest'}});
+ assert.equal(room.bots.size,2);assert.equal(new Set(room.people.map(m=>m.profile.color)).size,4);
+ assert.throws(()=>hub.command(guest,'addBot'),/host/);
+ hub.command(guest,'leave');hub.command(host,'addBot');
+ start(env);assert.throws(()=>hub.command(host,'removeBot'),/lobby/);
+ const {game}=room,crewBots=game.crew.filter(c=>c.bot&&!c.imp);
+ const spawn={x:crewBots[0].x,y:crewBots[0].y};
+ for(const c of game.crew){if(c.imp)c.killCooldown=1000;if(c.bot){c.profile.watchfulness=0;c.profile.roaming=0;}}
+ room.nextBotSabotage=1000;
+ for(let i=0;i<1300&&!crewBots.some(c=>c.tasks.some(t=>t.done));i++)room.tick(.1);
+ assert.ok(dist(crewBots[0],spawn)>20);assert.ok(crewBots.some(c=>c.tasks.some(t=>t.done)));
+ Object.assign(room.actor(host),game.map.emergency);hub.command(host,'emergency');
+ for(let i=0;i<51;i++)room.tick(.1);
+ hub.command(host,'vote',{target:-1});
+ for(let i=0;i<44;i++)room.tick(.1);
+ assert.ok(room.meeting.result);assert.equal(room.meeting.votes.size,4);
+});
+test('An impostor bot can kill a nearby player through the normal room tick',()=>{
+ const env=crew(1),{hub,room,members:[host]}=env;
+ room.random=()=>.1;
+ for(let i=0;i<3;i++)hub.command(host,'addBot');
+ start(env);
+ const g=room.game,attacker=g.crew.find(c=>c.imp),target=room.actor(host);
+ assert.ok(attacker.bot);assert.ok(!target.imp);
+ const near=g.map.rooms.find(r=>r.id==='navigation'),far=g.map.rooms.find(r=>r.id==='reactor');
+ for(const c of g.crew)Object.assign(c,{x:far.x+65,y:far.y+65});
+ Object.assign(attacker,{x:near.x+65,y:near.y+65,killCooldown:0});
+ Object.assign(target,{x:attacker.x+20,y:attacker.y});
+ room.tick(.1);
+ assert.ok(target.ghost);assert.ok(g.bodies.some(b=>b.id===target.id));
+});
+test('Guardian Angel blocks one kill, recharges, and sees the movement of another ghost',()=>{
+ const {hub,room,members}=start(crew(9));
+ const g=room.game,k=g.crew.find(c=>c.imp),[angel,target,observer]=g.crew.filter(c=>!c.imp);
+ const member=c=>members.find(m=>m.id===c.id);
+ const place=g.map.emergency;
+ for(const c of [k,angel,target,observer])Object.assign(c,place);
+ k.killCooldown=0;hub.command(member(k),'kill',{target:angel.id});
+ assert.equal(angel.role,'guardian');assert.ok(angel.ghost);
+ hub.command(member(angel),'protect',{target:target.id});
+ assert.throws(()=>hub.command(member(angel),'protect',{target:observer.id}),/recharge/);
+ k.killCooldown=0;hub.command(member(k),'kill',{target:target.id});
+ assert.ok(target.alive);assert.equal(g.bodies.length,1);assert.equal(target.shieldUntil,0);
+ k.killCooldown=0;hub.command(member(k),'kill',{target:target.id});
+ assert.ok(target.ghost);assert.notEqual(target.role,'guardian');
+ const before=target.x;hub.command(member(target),'input',{x:1,y:0});room.tick(.1);
+ assert.ok(target.x>before);assert.ok(room.snapshot(member(angel)).actors.some(c=>c.id===target.id&&c.ghost&&c.x===target.x));
+ assert.ok(room.snapshot(member(observer)).actors.every(c=>!c.ghost));
+ g.time=angel.protectReadyAt+.01;hub.command(member(angel),'protect',{target:observer.id});
+ g.time=observer.shieldUntil+.01;k.killCooldown=0;hub.command(member(k),'kill',{target:observer.id});
+ assert.equal(observer.alive,false);
+});
+test('The sole Shapeshifter keeps its real identity private and automatically reverts',()=>{
+ const {hub,room,members}=start(crew(10,{impostors:3}));
+ const g=room.game,shifters=g.crew.filter(c=>c.role==='shapeshifter');
+ assert.equal(shifters.length,1);
+ const [shifter]=shifters,[target,viewer]=g.crew.filter(c=>!c.imp);
+ const member=c=>members.find(m=>m.id===c.id);
+ const place=g.map.emergency;for(const c of [shifter,target,viewer])Object.assign(c,place);
+ assert.throws(()=>hub.command(member(viewer),'shift',{target:target.id}),/ready/);
+ hub.command(member(shifter),'shift',{target:target.id});
+ const seen=room.snapshot(member(viewer));
+ const disguised=seen.actors.find(c=>c.id===shifter.disguiseId);
+ assert.equal(disguised.name,target.name);assert.equal(disguised.color,target.color);assert.equal(disguised.hat,target.hat);
+ assert.ok(!seen.actors.some(c=>c.id===shifter.id));assert.ok(!seen.pets.some(p=>p.ownerId===shifter.id));
+ assert.equal(room.snapshot(member(shifter)).self.name,shifter.name);
+ g.time=shifter.shiftUntil;room.tick(.1);
+ assert.equal(shifter.disguise,null);assert.ok(room.snapshot(member(viewer)).actors.some(c=>c.id===shifter.id&&c.name===shifter.name));
+ assert.throws(()=>hub.command(member(shifter),'shift',{target:target.id}),/ready/);
+});
 test('Online names and chat preserve Chinese, Japanese, and complete Unicode characters',()=>{
  const name='日'.repeat(11)+'😀';assert.equal(profile({name}).name,name);const e=crew(4),m=e.members[0],text='中'.repeat(179)+'😀';e.hub.command(m,'chat',{text});assert.equal(e.room.messages.at(-1).text,text);assert.equal(Array.from(e.room.messages.at(-1).text).length,180);assert.ok(e.room.messages.at(-1).text.endsWith('😀'));
 });
 test('Settings and profiles validate bounded values and remove unknown cosmetics',()=>{const s=settings({maxPlayers:999,impostors:10,speed:Infinity,taskCount:-1,mapId:'unknown',public:'true'});assert.equal(s.maxPlayers,15);assert.equal(s.impostors,3);assert.equal(s.speed,1);assert.equal(s.taskCount,4);assert.equal(s.mapId,'skeld');assert.equal(s.public,false);assert.equal(profile({name:'<x>\u0000',hat:'injected',pet:'ufo'}).hat,'none');assert.equal(profile({pet:'ufo'}).pet,'ufo');});
 test('Public and private rooms, codes, colors, host permissions, limits, and readiness',()=>{const e=crew(4),{hub,members,room}=e;assert.match(room.code,/^[A-HJ-NP-Z2-9]{6}$/);assert.equal(hub.list().length,1);assert.equal(new Set(members.map(m=>m.profile.color)).size,4);assert.throws(()=>hub.command(members[1],'settings',{impostors:3}),/host/);assert.throws(()=>hub.command(members[0],'start'),/Ready/);hub.command(members[0],'settings',{public:false});assert.equal(hub.list().length,0);hub.command(members[0],'settings',{maxPlayers:3});assert.equal(room.config.maxPlayers,4);});
-test('A room needs four players and fair impostor counts; late joins and mid-round settings are blocked',()=>{const e=crew(3);for(const m of e.members)m.ready=true;assert.throws(()=>e.hub.command(e.members[0],'start'),/4 real/);const m=e.hub.connect(()=>{});e.hub.command(m,'join',{code:e.room.code});e.members.push(m);e.hub.command(e.members[0],'settings',{impostors:2});e.members.forEach(m=>m.ready=true);assert.throws(()=>e.hub.command(e.members[0],'start'),/7/);e.hub.command(e.members[0],'settings',{impostors:1});start(e);assert.throws(()=>e.hub.command(e.hub.connect(()=>{}),'join',{code:e.room.code}),/started/);assert.throws(()=>e.hub.command(e.members[0],'settings',{mapId:'aurora'}),/locked/);});
+test('A room needs four players and fair impostor counts; late joins and mid-round settings are blocked',()=>{const e=crew(3);for(const m of e.members)m.ready=true;assert.throws(()=>e.hub.command(e.members[0],'start'),/4 players are needed/);const m=e.hub.connect(()=>{});e.hub.command(m,'join',{code:e.room.code});e.members.push(m);e.hub.command(e.members[0],'settings',{impostors:2});e.members.forEach(m=>m.ready=true);assert.throws(()=>e.hub.command(e.members[0],'start'),/7/);e.hub.command(e.members[0],'settings',{impostors:1});start(e);assert.throws(()=>e.hub.command(e.hub.connect(()=>{}),'join',{code:e.room.code}),/started/);assert.throws(()=>e.hub.command(e.members[0],'settings',{mapId:'aurora'}),/locked/);});
 test('Fifteen-player rounds on both maps assign exact private roles and distinct spawns',()=>{for(const mapId of Object.keys(MAPS)){const e=start(crew(15,{impostors:3,mapId,engineers:2,scientists:2})),g=e.room.game;assert.equal(g.crew.length,15);assert.equal(g.crew.filter(c=>c.imp).length,3);assert.equal(g.crew.filter(c=>c.role==='engineer').length,2);assert.equal(g.crew.filter(c=>c.role==='scientist').length,2);assert.ok(g.crew.every(c=>g.walkable(c.x,c.y)));for(const m of e.members){const s=e.room.snapshot(m);assert.equal(s.self.role,e.room.actor(m).role);assert.ok(s.roster.every(c=>c.role===undefined));assert.equal(s.team.length,s.self.imp?3:0);for(const ally of s.team){assert.match(ally.color,/^#[a-f0-9]{6}$/);assert.ok('hat'in ally&&'accessory'in ally);assert.ok(!('x'in ally)&&!('role'in ally));}}}});
 test('The three-second suspense and role reveal freeze movement, cooldowns, and tasks',()=>{const e=crew(4);e.members.forEach(m=>m.ready=true);e.hub.command(e.members[0],'start');const c=e.room.game.crew[0],before={x:c.x,y:c.y};for(let i=0;i<29;i++)e.room.tick(.1);assert.ok(e.room.introRemaining>3.4);assert.equal(e.room.game.time,0);assert.equal(c.killCooldown,15);assert.deepEqual({x:c.x,y:c.y},before);assert.throws(()=>e.hub.command(e.members[0],'input',{x:1,y:0}),/resume/);});
 test('Server movement normalizes inputs, rejects teleporting and invalid numbers, and preserves navigation on idle input',()=>{const e=start(crew()),m=e.members[0],c=e.room.actor(m),before={x:c.x,y:c.y};e.hub.command(m,'input',{x:100,y:100});e.room.tick(.1);assert.ok(dist(c,before)<=17.501);assert.throws(()=>e.hub.command(m,'input',{x:NaN,y:0}),/Invalid/);assert.throws(()=>e.hub.command(m,'walk',{x:99999,y:99999}),/destination/);e.hub.command(m,'navigate',{id:c.tasks[0].id});assert.ok(c.path.length);e.hub.command(m,'input',{x:0,y:0});assert.ok(c.path.length);for(let i=0;i<100;i++){e.hub.command(m,'input',{x:0,y:-1});e.room.tick(.1);assert.ok(e.room.game.walkable(c.x,c.y));}});
