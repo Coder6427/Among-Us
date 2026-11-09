@@ -36,6 +36,12 @@ Keep this service on **one instance**. Rooms and reconnection sessions live in t
 
 The Blueprint starts with Render's Free plan so it does not request a paid service. A Free service can sleep, restart, and take about a minute to wake after inactivity. A server restart or new deployment clears the rooms. For regular public play, select a suitable always-on instance in your Render account. These limits come from [Render's Free service documentation](https://render.com/docs/free). Neither plan nor account changes have been made for you.
 
+## Language and animation
+
+Open **Settings → Game language** in either online play or Practice. Choose **English**, **简体中文**, or **日本語**. Switching is immediate and saved on the current device. Each player can use a different language in the same room. It changes interface text and generated game messages while preserving room settings, roles, progress, callsigns, room codes, and actual chat text. Japanese and Chinese input composition is guarded against accidental submission. The self-contained HTML files include all translations and use system CJK font fallbacks; no translation service or font download is required for them to work.
+
+The hamster has a round face, two eyes, cheek pouches, whiskers, paws, and a clear rolling ball. Pets have smoother movement and settle when idle. The character walk alternates planted feet and raised feet with a small body lean; outfits stay attached. All hats and accessories share the same shapes between previews and gameplay, with refined cap, beanie, sprout, tie, scarf, and mask details. Reduce motion remains available in Settings.
+
 ## Play online
 
 - Choose a callsign, suit color, hat, accessory, pet, and PC or Mobile controls.
@@ -79,7 +85,7 @@ Open `http://localhost:3000`. For a local multiplayer check, use several browser
 
 `GET /health` returns JSON with `ok: true`. The server binds to `0.0.0.0` and Render's `PORT` automatically. Only the two public HTML files and the health endpoint are served; source files and session tokens are not exposed as website routes. Messages have size and frequency limits, names and chat render as text, and every action uses the identity of its own socket.
 
-Validation passed 17 multiplayer rule and network checks, including a real fifteen-player WebSocket room alongside a separate private room and synchronized movement. A bundled-client test also passed room creation, role reveal, task completion, cameras, vitals, vent travel, light repairs, mobile controls, meetings, chat, voting, kill scenes, reconnection, and returning to the lobby. The original 75 single-player checks are retained in the development source. The in-app browser preview could not connect in the authoring environment, so a visual browser pass and a deployment on your Render account are still required. No claim of live worldwide deployment or unlimited server capacity is made.
+Validation passed 18 multiplayer rule and network checks, including a real fifteen-player WebSocket room alongside a separate private room and synchronized movement. A bundled-client test also passed room creation, role reveal, task completion, cameras, vitals, vent travel, light repairs, mobile controls, meetings, chat, voting, kill scenes, reconnection, and returning to the lobby. The 76 single-player checks are retained in the development source. Additional DOM tests cover Chinese/Japanese catalog completeness, live round and mobile switching, all tasks and repairs, protected names and chat, and IME composition. Native game-art renders were visually checked. The in-app browser preview could not connect in the authoring environment, so a visual browser pass and a deployment on your Render account are still required. No claim of live worldwide deployment or unlimited server capacity is made.
 
 ## Operations
 
